@@ -1,0 +1,17 @@
+---
+description: Project context for monorepo-dotnet. Always read AGENT.md before making changes.
+alwaysApply: true
+---
+
+# monorepo-dotnet
+
+Before answering or changing code in this repository, **read `AGENT.md` at the repo root**.
+
+`AGENT.md` is the source of truth for product goals, architecture, phases, coding standards, and definition of done. Do not skip it. Do not treat chat history as a substitute.
+
+Then:
+
+1. Inspect the existing repository and **Current status** in `AGENT.md`.
+2. Work incrementally on the current phase only. Do not implement later phases in the same change.
+3. Follow the layered architecture: Core has no Infrastructure/CLI references; Infrastructure implements Core abstractions; CLI is the composition root.
+4. After a phase: build, verify, update docs, and update **Current status** in `AGENT.md`.
