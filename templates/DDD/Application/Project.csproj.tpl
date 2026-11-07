@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>{{TargetFramework}}</TargetFramework>
-    <RootNamespace>{{Namespace}}.Application</RootNamespace>
+    <RootNamespace>{{ApplicationNamespace}}</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

@@ -23,13 +23,19 @@ public sealed class ConfigurationPrompt
                         : ValidationResult.Error(string.Join(" ", errors));
                 }));
 
+        var normalizedName = SolutionNameValidator.Normalize(solutionName);
+
         var outputDirectory = AnsiConsole.Prompt(
             new TextPrompt<string>("Output [green]directory[/]:")
                 .DefaultValue(Environment.CurrentDirectory)
                 .PromptStyle("yellow")
-                .Validate(value => string.IsNullOrWhiteSpace(value)
-                    ? ValidationResult.Error("Output directory is required.")
-                    : ValidationResult.Success()));
+                .Validate(value =>
+                {
+                    var errors = OutputPathValidator.ValidateTarget(value, normalizedName);
+                    return errors.Count == 0
+                        ? ValidationResult.Success()
+                        : ValidationResult.Error(string.Join(" ", errors));
+                }));
 
         var dotNetVersion = AnsiConsole.Prompt(
             new SelectionPrompt<string>()
@@ -39,22 +45,14 @@ public sealed class ConfigurationPrompt
         var architecture = AnsiConsole.Prompt(
             new SelectionPrompt<ArchitectureType>()
                 .Title("[green]Architecture[/]:")
-                .AddChoices(ArchitectureType.Ddd)
-                .UseConverter(architecture => architecture switch
-                {
-                    ArchitectureType.Ddd => "DDD (Domain-Driven Design)",
-                    _ => architecture.ToString()
-                }));
+                .AddChoices(ArchitectureTypeExtensions.All())
+                .UseConverter(candidate => candidate.ToDisplayName()));
 
         var database = AnsiConsole.Prompt(
             new SelectionPrompt<DatabaseProvider>()
                 .Title("[green]Database[/]:")
-                .AddChoices(DatabaseProvider.PostgreSql)
-                .UseConverter(provider => provider switch
-                {
-                    DatabaseProvider.PostgreSql => "PostgreSQL (EF Core, Code First)",
-                    _ => provider.ToString()
-                }));
+                .AddChoices(DatabaseProviderExtensions.All())
+                .UseConverter(provider => provider.ToDisplayName()));
 
         var includeDocker = AnsiConsole.Confirm(
             "Generate [green]Docker[/] files (Dockerfile, docker-compose.yml, .env.example)?",
@@ -71,8 +69,8 @@ public sealed class ConfigurationPrompt
 
         return new GeneratorOptions
         {
-            SolutionName = SolutionNameValidator.Normalize(solutionName),
-            OutputDirectory = Path.GetFullPath(outputDirectory.Trim()),
+            SolutionName = normalizedName,
+            OutputDirectory = OutputPathValidator.Normalize(outputDirectory),
             DotNetVersion = dotNetVersion.Split(' ')[0],
             Architecture = architecture,
             Database = database,

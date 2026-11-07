@@ -1,6 +1,6 @@
 using MediatR;
-using {{Namespace}}.Application.Products.Dtos;
+using {{ApplicationNamespace}}.Products.Dtos;
 
-namespace {{Namespace}}.Application.Products.Commands;
+namespace {{ApplicationNamespace}}.Products.Commands;
 
 public sealed record CreateProductCommand(string Name, decimal Price) : IRequest<ProductDto>;

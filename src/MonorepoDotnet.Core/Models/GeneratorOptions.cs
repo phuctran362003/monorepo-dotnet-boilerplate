@@ -31,10 +31,32 @@ public sealed record GeneratorOptions
     /// <summary>Lower-case name used for Docker services, images and database names.</summary>
     public string DockerName => SolutionName.ToLowerInvariant();
 
+    /// <summary>Default port of the selected database.</summary>
+    public int DatabasePort => Database == DatabaseProvider.SqlServer ? 1433 : 5432;
+
+    /// <summary>Database administrator used by the generated connection strings.</summary>
+    public string DatabaseUser => Database == DatabaseProvider.SqlServer ? "sa" : "postgres";
+
+    /// <summary>Docker Compose service name the API connects to.</summary>
+    public string DatabaseService => Database == DatabaseProvider.SqlServer ? "sqlserver" : "postgres";
+
     public bool HasPackage(OptionalPackage package) => (Packages & package) == package;
 
     public string ApiProject => $"{SolutionName}.API";
+    public string WebApiProject => $"{SolutionName}.WebApi";
     public string ApplicationProject => $"{SolutionName}.Application";
     public string DomainProject => $"{SolutionName}.Domain";
     public string InfrastructureProject => $"{SolutionName}.Infrastructure";
+    public string SingleLayerProject => SolutionName;
+    public string MvcProject => $"{SolutionName}.Web";
+
+    /// <summary>Project that hosts the application entry point for the selected architecture.</summary>
+    public string MainProject => Architecture switch
+    {
+        ArchitectureType.Ddd => ApiProject,
+        ArchitectureType.Clean => WebApiProject,
+        ArchitectureType.SingleLayer => SingleLayerProject,
+        ArchitectureType.Mvc => MvcProject,
+        _ => throw new ArgumentOutOfRangeException(nameof(Architecture), Architecture, "Unsupported architecture.")
+    };
 }

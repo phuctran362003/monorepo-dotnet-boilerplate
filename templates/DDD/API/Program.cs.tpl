@@ -1,8 +1,8 @@
-using {{Namespace}}.API.Extensions;
-using {{Namespace}}.API.Middleware;
-using {{Namespace}}.Application;
-using {{Namespace}}.Infrastructure;
-using {{Namespace}}.Infrastructure.Persistence;
+using {{ApiNamespace}}.Extensions;
+using {{ApiNamespace}}.Middleware;
+using {{ApplicationNamespace}};
+using {{InfrastructureNamespace}};
+using {{InfrastructureNamespace}}.Persistence;
 {{#if Serilog}}using Serilog;
 {{/if}}using Microsoft.EntityFrameworkCore;
 

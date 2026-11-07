@@ -1,9 +1,9 @@
-using {{Namespace}}.Domain.Common;
-using {{Namespace}}.Domain.Enums;
-using {{Namespace}}.Domain.Exceptions;
-using {{Namespace}}.Domain.ValueObjects;
+using {{DomainNamespace}}.Common;
+using {{DomainNamespace}}.Enums;
+using {{DomainNamespace}}.Exceptions;
+using {{DomainNamespace}}.ValueObjects;
 
-namespace {{Namespace}}.Domain.Entities;
+namespace {{DomainNamespace}}.Entities;
 
 /// <summary>
 /// Sample aggregate root. Replace or extend it with your own business model.

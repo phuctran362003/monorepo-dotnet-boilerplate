@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>{{TargetFramework}}</TargetFramework>
-    <RootNamespace>{{Namespace}}.Domain</RootNamespace>
+    <RootNamespace>{{DomainNamespace}}</RootNamespace>
   </PropertyGroup>
 
 </Project>

@@ -1,6 +1,6 @@
-using {{Namespace}}.Domain.Entities;
+using {{DomainNamespace}}.Entities;
 
-namespace {{Namespace}}.Domain.Repositories;
+namespace {{DomainNamespace}}.Repositories;
 
 /// <summary>Repository contract for the <see cref="Product"/> aggregate.</summary>
 public interface IProductRepository

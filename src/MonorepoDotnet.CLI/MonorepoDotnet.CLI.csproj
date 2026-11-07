@@ -11,7 +11,7 @@
     <ToolCommandName>monorepo-dotnet</ToolCommandName>
     <PackageId>MonorepoDotnet.CLI</PackageId>
     <Version>0.1.0</Version>
-    <Description>Interactive generator for ASP.NET Core DDD solutions with PostgreSQL, EF Core and Docker.</Description>
+    <Description>Interactive generator for ASP.NET Core solutions (DDD, Clean, 1-Layer, MVC) with PostgreSQL, EF Core and Docker.</Description>
   </PropertyGroup>
 
   <ItemGroup>

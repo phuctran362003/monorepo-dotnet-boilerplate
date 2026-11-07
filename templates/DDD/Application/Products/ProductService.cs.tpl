@@ -1,12 +1,12 @@
-using {{Namespace}}.Application.Common.Interfaces;
-{{#if Redis}}using {{Namespace}}.Application.Common.Caching;
-{{/if}}using {{Namespace}}.Application.Products.Dtos;
-using {{Namespace}}.Domain.Entities;
-using {{Namespace}}.Domain.Repositories;
-using {{Namespace}}.Domain.ValueObjects;
+using {{ApplicationNamespace}}.Common.Interfaces;
+{{#if Redis}}using {{ApplicationNamespace}}.Common.Caching;
+{{/if}}using {{ApplicationNamespace}}.Products.Dtos;
+using {{DomainNamespace}}.Entities;
+using {{DomainNamespace}}.Repositories;
+using {{DomainNamespace}}.ValueObjects;
 {{#if AutoMapper}}using AutoMapper;
 {{/if}}
-namespace {{Namespace}}.Application.Products;
+namespace {{ApplicationNamespace}}.Products;
 
 public sealed class ProductService : IProductService
 {

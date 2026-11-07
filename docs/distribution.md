@@ -52,21 +52,24 @@ the SDK restores automatically.
 
 ## Why templates survive publishing
 
-`MonorepoDotnet.Infrastructure.csproj` embeds `templates/DDD/**` as resources:
+`MonorepoDotnet.Infrastructure.csproj` embeds every template under `templates/`
+as a resource:
 
 ```xml
-<EmbeddedResource Include="..\..\templates\DDD\**\*.tpl" WithCulture="false" />
+<EmbeddedResource Include="..\..\templates\**\*"
+                  LogicalName="templates/%(RecursiveDir)%(Filename)%(Extension)"
+                  WithCulture="false" />
 ```
 
 `WithCulture="false"` is required: without it MSBuild treats `*.cs.tpl` files as
 satellite resources for specific cultures and the build fails. The resource name
-is `templates/DDD/<relative path>`, which is what `TemplateProvider` looks up at
-runtime.
+is `templates/<architecture>/<relative path>`, which is what `TemplateProvider`
+looks up at runtime.
 
 Resolution order in `TemplateProvider`:
 
 1. Embedded manifest resource (always present in published builds).
-2. Disk fallback: `templates/DDD/...` walking up from the current directory.
+2. Disk fallback: `templates/<architecture>/...` walking up from the current directory.
 3. `MONOREPODOTNET_TEMPLATES` environment variable pointing at a templates root.
 
 The disk fallbacks exist so templates can be edited during development without

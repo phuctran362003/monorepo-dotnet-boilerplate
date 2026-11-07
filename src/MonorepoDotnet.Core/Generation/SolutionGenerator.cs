@@ -6,10 +6,11 @@ using MonorepoDotnet.Core.Validation;
 namespace MonorepoDotnet.Core.Generation;
 
 /// <summary>
-/// Orchestrates the DDD solution generation pipeline. The generator only talks
-/// to abstractions, so it stays testable and free of infrastructure concerns.
+/// Orchestrates the solution generation pipeline for every supported
+/// architecture. The generator only talks to abstractions, so it stays
+/// testable and free of infrastructure concerns.
 /// </summary>
-public sealed class DddSolutionGenerator : ISolutionGenerator
+public sealed class SolutionGenerator : ISolutionGenerator
 {
     private const int TotalSteps = 8;
     private readonly IFileSystem _fileSystem;
@@ -17,7 +18,7 @@ public sealed class DddSolutionGenerator : ISolutionGenerator
     private readonly ITemplateRenderer _templateRenderer;
     private readonly IProcessRunner _processRunner;
 
-    public DddSolutionGenerator(
+    public SolutionGenerator(
         IFileSystem fileSystem,
         ITemplateProvider templateProvider,
         ITemplateRenderer templateRenderer,
@@ -44,12 +45,13 @@ public sealed class DddSolutionGenerator : ISolutionGenerator
         {
             ValidateOptions(options);
 
+            var layout = SolutionLayouts.Create(options);
             createdRoot = PrepareTargetDirectory(rootDirectory);
-            var files = DddTemplateManifest.ForOptions(options).ToList();
+            var files = ArchitectureTemplateManifest.For(options).ToList();
 
             progress?.Report(new GenerationProgress(1, TotalSteps, "Preparing solution directory"));
 
-            var values = BuildTemplateValues(options);
+            var values = BuildTemplateValues(options, layout);
             var flags = BuildTemplateFlags(options);
 
             progress?.Report(new GenerationProgress(2, TotalSteps, $"Generating {files.Count} project files"));
@@ -67,7 +69,7 @@ public sealed class DddSolutionGenerator : ISolutionGenerator
             }
 
             progress?.Report(new GenerationProgress(4, TotalSteps, "Creating solution file"));
-            await CreateSolutionAsync(rootDirectory, options, cancellationToken).ConfigureAwait(false);
+            await CreateSolutionAsync(rootDirectory, options, layout, cancellationToken).ConfigureAwait(false);
 
             progress?.Report(new GenerationProgress(5, TotalSteps, "Restoring NuGet packages"));
             await RunDotnetAsync(rootDirectory, ["restore", SolutionFileName(options)], cancellationToken)
@@ -81,7 +83,11 @@ public sealed class DddSolutionGenerator : ISolutionGenerator
                 .ConfigureAwait(false);
 
             progress?.Report(new GenerationProgress(7, TotalSteps, "Creating initial EF Core migration"));
-            var migrationCreated = await TryCreateInitialMigrationAsync(rootDirectory, options, warnings, cancellationToken)
+            var migrationCreated = await TryCreateInitialMigrationAsync(
+                    rootDirectory,
+                    layout,
+                    warnings,
+                    cancellationToken)
                 .ConfigureAwait(false);
 
             progress?.Report(new GenerationProgress(8, TotalSteps, "Finalizing"));
@@ -115,17 +121,19 @@ public sealed class DddSolutionGenerator : ISolutionGenerator
             throw new GenerationException(string.Join(" ", nameErrors));
         }
 
-        if (string.IsNullOrWhiteSpace(options.OutputDirectory))
+        var pathErrors = OutputPathValidator.ValidateTarget(options.OutputDirectory, options.SolutionName);
+        if (pathErrors.Count > 0)
         {
-            throw new GenerationException("Output directory is required.");
+            throw new GenerationException(string.Join(" ", pathErrors));
         }
 
-        if (options.Architecture != ArchitectureType.Ddd)
+        if (!Enum.IsDefined(options.Architecture))
         {
             throw new GenerationException($"Architecture '{options.Architecture}' is not implemented yet.");
         }
 
-        if (options.Database != DatabaseProvider.PostgreSql)
+        if (options.Database != DatabaseProvider.PostgreSql &&
+            options.Database != DatabaseProvider.SqlServer)
         {
             throw new GenerationException($"Database '{options.Database}' is not implemented yet.");
         }
@@ -178,14 +186,30 @@ public sealed class DddSolutionGenerator : ISolutionGenerator
         CancellationToken cancellationToken)
     {
         var password = Convert.ToHexString(RandomNumberGenerator.GetBytes(24)).ToLowerInvariant();
+        var newLine = Environment.NewLine;
+
+        var databaseVariables = options.Database switch
+        {
+            // SQL Server requires at least 8 characters with three of the four
+            // categories (upper, lower, digit, symbol); a hex password plus two
+            // extra symbols satisfies that.
+            DatabaseProvider.SqlServer =>
+                $"MSSQL_DB={options.DockerName}{newLine}" +
+                "MSSQL_USER=sa" + newLine +
+                $"MSSQL_SA_PASSWORD={password}Aa!{newLine}" +
+                $"MSSQL_PORT={options.DatabasePort}{newLine}",
+            _ =>
+                $"POSTGRES_DB={options.DockerName}{newLine}" +
+                "POSTGRES_USER=postgres" + newLine +
+                $"POSTGRES_PASSWORD={password}{newLine}" +
+                $"POSTGRES_PORT={options.DatabasePort}{newLine}"
+        };
+
         var content =
-            $"# Local Docker Compose environment. Never commit this file.{Environment.NewLine}" +
-            $"POSTGRES_DB={options.DockerName}{Environment.NewLine}" +
-            "POSTGRES_USER=postgres" + Environment.NewLine +
-            $"POSTGRES_PASSWORD={password}{Environment.NewLine}" +
-            "POSTGRES_PORT=5432" + Environment.NewLine +
-            "API_HTTP_PORT=8080" + Environment.NewLine +
-            "APPLY_MIGRATIONS=false" + Environment.NewLine;
+            $"# Local Docker Compose environment. Never commit this file.{newLine}" +
+            databaseVariables +
+            "API_HTTP_PORT=8080" + newLine +
+            "APPLY_MIGRATIONS=false" + newLine;
 
         await _fileSystem
             .WriteAllTextAsync(Path.Combine(rootDirectory, ".env"), content, cancellationToken)
@@ -195,6 +219,7 @@ public sealed class DddSolutionGenerator : ISolutionGenerator
     private async Task CreateSolutionAsync(
         string rootDirectory,
         GeneratorOptions options,
+        SolutionLayout layout,
         CancellationToken cancellationToken)
     {
         var solutionFile = SolutionFileName(options);
@@ -218,18 +243,10 @@ public sealed class DddSolutionGenerator : ISolutionGenerator
                 $"Could not create the solution file. {newSolution.StandardError.Trim()}");
         }
 
-        string[] projects =
-        [
-            ProjectPath(options.DomainProject),
-            ProjectPath(options.ApplicationProject),
-            ProjectPath(options.InfrastructureProject),
-            ProjectPath(options.ApiProject)
-        ];
-
         var addProjects = await _processRunner
             .RunAsync(
                 "dotnet",
-                ["sln", solutionFile, "add", .. projects],
+                ["sln", solutionFile, "add", .. layout.Projects.Select(project => project.RelativePath)],
                 rootDirectory,
                 cancellationToken)
             .ConfigureAwait(false);
@@ -264,10 +281,17 @@ public sealed class DddSolutionGenerator : ISolutionGenerator
 
     private async Task<bool> TryCreateInitialMigrationAsync(
         string rootDirectory,
-        GeneratorOptions options,
+        SolutionLayout layout,
         List<string> warnings,
         CancellationToken cancellationToken)
     {
+        if (layout.MigrationProject is null ||
+            layout.MigrationStartupProject is null ||
+            string.IsNullOrWhiteSpace(layout.MigrationOutputDirectory))
+        {
+            return true;
+        }
+
         var toolCheck = await _processRunner
             .RunAsync("dotnet", ["ef", "--version"], rootDirectory, cancellationToken)
             .ConfigureAwait(false);
@@ -282,9 +306,9 @@ public sealed class DddSolutionGenerator : ISolutionGenerator
                 "dotnet",
                 [
                     "ef", "migrations", "add", "InitialCreate",
-                    "--project", ProjectPath(options.InfrastructureProject),
-                    "--startup-project", ProjectPath(options.ApiProject),
-                    "--output-dir", "Persistence/Migrations",
+                    "--project", layout.MigrationProject.RelativePath,
+                    "--startup-project", layout.MigrationStartupProject.RelativePath,
+                    "--output-dir", layout.MigrationOutputDirectory,
                     "--no-build"
                 ],
                 rootDirectory,
@@ -319,9 +343,6 @@ public sealed class DddSolutionGenerator : ISolutionGenerator
         }
     }
 
-    private static string ProjectPath(string projectName) =>
-        $"src/{projectName}/{projectName}.csproj";
-
     private static string SolutionFileName(GeneratorOptions options) => $"{options.SolutionName}.sln";
 
     private static string TrimForDisplay(string value)
@@ -331,21 +352,35 @@ public sealed class DddSolutionGenerator : ISolutionGenerator
         return trimmed.Length <= maxLength ? trimmed : trimmed[..maxLength] + "...";
     }
 
-    private static IReadOnlyDictionary<string, string> BuildTemplateValues(GeneratorOptions options) =>
+    private static IReadOnlyDictionary<string, string> BuildTemplateValues(
+        GeneratorOptions options,
+        SolutionLayout layout) =>
         new Dictionary<string, string>(StringComparer.Ordinal)
         {
             ["SolutionName"] = options.SolutionName,
-            ["Namespace"] = options.SolutionName,
+            ["Namespace"] = layout.MainProject.Name,
             ["DomainProject"] = options.DomainProject,
             ["ApplicationProject"] = options.ApplicationProject,
             ["InfrastructureProject"] = options.InfrastructureProject,
-            ["ApiProject"] = options.ApiProject,
+            ["ApiProject"] = options.MainProject,
+            ["WebApiProject"] = options.WebApiProject,
+            ["SingleLayerProject"] = options.SingleLayerProject,
+            ["MvcProject"] = options.MvcProject,
+            ["DomainNamespace"] = options.DomainProject,
+            ["ApplicationNamespace"] = options.ApplicationProject,
+            ["InfrastructureNamespace"] = options.InfrastructureProject,
+            ["ApiNamespace"] = options.MainProject,
+            ["MainProject"] = layout.MainProject.Name,
+            ["MainProjectPath"] = layout.MainProject.RelativePath,
+            ["DockerProjectCopies"] = BuildDockerProjectCopies(layout),
             ["TargetFramework"] = options.DotNetVersion,
             ["DotNetImageTag"] = PackageVersions.DotNetImageTag,
             ["DockerName"] = options.DockerName,
             ["DatabaseName"] = options.DockerName,
-            ["PostgresUser"] = "postgres",
-            ["PostgresPort"] = "5432",
+            ["Database"] = options.Database.ToShortName(),
+            ["DatabaseService"] = options.DatabaseService,
+            ["DatabaseUser"] = options.DatabaseUser,
+            ["DatabasePort"] = options.DatabasePort.ToString(),
             ["ApiHttpPort"] = "8080",
             ["ApiHttpsPort"] = "8081",
             ["EfCoreVersion"] = PackageVersions.EntityFrameworkCore,
@@ -358,8 +393,15 @@ public sealed class DddSolutionGenerator : ISolutionGenerator
             ["MediatRVersion"] = PackageVersions.MediatR,
             ["RedisVersion"] = PackageVersions.StackExchangeRedis,
             ["PostgresImage"] = PackageVersions.PostgresImage,
+            ["SqlServerImage"] = PackageVersions.SqlServerImage,
             ["RedisImage"] = PackageVersions.RedisImage
         };
+
+    private static string BuildDockerProjectCopies(SolutionLayout layout) =>
+        string.Join(
+            Environment.NewLine,
+            layout.Projects.Select(project =>
+                $"COPY [\"{project.RelativePath}\", \"src/{project.Name}/\"]"));
 
     private static IReadOnlyDictionary<string, bool> BuildTemplateFlags(GeneratorOptions options) =>
         new Dictionary<string, bool>(StringComparer.Ordinal)
@@ -369,6 +411,12 @@ public sealed class DddSolutionGenerator : ISolutionGenerator
             ["FluentValidation"] = options.HasPackage(OptionalPackage.FluentValidation),
             ["AutoMapper"] = options.HasPackage(OptionalPackage.AutoMapper),
             ["Redis"] = options.HasPackage(OptionalPackage.Redis),
-            ["MediatR"] = options.HasPackage(OptionalPackage.MediatR)
+            ["MediatR"] = options.HasPackage(OptionalPackage.MediatR),
+            ["Ddd"] = options.Architecture == ArchitectureType.Ddd,
+            ["Clean"] = options.Architecture == ArchitectureType.Clean,
+            ["SingleLayer"] = options.Architecture == ArchitectureType.SingleLayer,
+            ["Mvc"] = options.Architecture == ArchitectureType.Mvc,
+            ["Postgres"] = options.Database == DatabaseProvider.PostgreSql,
+            ["SqlServer"] = options.Database == DatabaseProvider.SqlServer
         };
 }

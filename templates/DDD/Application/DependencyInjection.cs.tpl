@@ -1,11 +1,11 @@
-using {{Namespace}}.Application.Products;
+using {{ApplicationNamespace}}.Products;
 {{#if AutoMapper}}using AutoMapper;
 {{/if}}{{#if FluentValidation}}using FluentValidation;
 {{/if}}{{#if MediatR}}using MediatR;
 {{/if}}using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace {{Namespace}}.Application;
+namespace {{ApplicationNamespace}};
 
 public static class DependencyInjection
 {

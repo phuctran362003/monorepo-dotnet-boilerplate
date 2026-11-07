@@ -1,6 +1,6 @@
-using {{Namespace}}.Application.Products.Dtos;
+using {{ApplicationNamespace}}.Products.Dtos;
 
-namespace {{Namespace}}.Application.Products;
+namespace {{ApplicationNamespace}}.Products;
 
 /// <summary>Application service exposing the product use cases.</summary>
 public interface IProductService

@@ -4,14 +4,11 @@ FROM mcr.microsoft.com/dotnet/sdk:{{DotNetImageTag}} AS build
 WORKDIR /src
 
 COPY Directory.Build.props ./
-COPY ["src/{{ApiProject}}/{{ApiProject}}.csproj", "src/{{ApiProject}}/"]
-COPY ["src/{{ApplicationProject}}/{{ApplicationProject}}.csproj", "src/{{ApplicationProject}}/"]
-COPY ["src/{{DomainProject}}/{{DomainProject}}.csproj", "src/{{DomainProject}}/"]
-COPY ["src/{{InfrastructureProject}}/{{InfrastructureProject}}.csproj", "src/{{InfrastructureProject}}/"]
-RUN dotnet restore "src/{{ApiProject}}/{{ApiProject}}.csproj"
+{{DockerProjectCopies}}
+RUN dotnet restore "{{MainProjectPath}}"
 
 COPY . .
-RUN dotnet publish "src/{{ApiProject}}/{{ApiProject}}.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "{{MainProjectPath}}" -c Release -o /app/publish /p:UseAppHost=false
 
 FROM mcr.microsoft.com/dotnet/aspnet:{{DotNetImageTag}} AS final
 WORKDIR /app
@@ -27,4 +24,4 @@ RUN apt-get update \
 EXPOSE 8080
 COPY --from=build /app/publish .
 USER $APP_UID
-ENTRYPOINT ["dotnet", "{{ApiProject}}.dll"]
+ENTRYPOINT ["dotnet", "{{MainProject}}.dll"]

@@ -1,7 +1,7 @@
 using MediatR;
-using {{Namespace}}.Application.Products.Dtos;
+using {{ApplicationNamespace}}.Products.Dtos;
 
-namespace {{Namespace}}.Application.Products.Commands;
+namespace {{ApplicationNamespace}}.Products.Commands;
 
 public sealed class CreateProductCommandHandler : IRequestHandler<CreateProductCommand, ProductDto>
 {

@@ -9,7 +9,7 @@ public static class ConsoleRenderer
     public static void RenderBanner()
     {
         AnsiConsole.Write(new FigletText("monorepo-dotnet").Color(Color.Cyan1));
-        AnsiConsole.MarkupLine("[grey]ASP.NET Core DDD solution generator — PostgreSQL, EF Core, Docker[/]");
+        AnsiConsole.MarkupLine("[grey]ASP.NET Core solution generator — DDD, Clean, 1-Layer and MVC — PostgreSQL, EF Core, Docker[/]");
         AnsiConsole.WriteLine();
     }
 
@@ -25,8 +25,8 @@ public static class ConsoleRenderer
         table.AddRow("Solution name", Markup.Escape(options.SolutionName));
         table.AddRow("Output directory", Markup.Escape(options.OutputDirectory));
         table.AddRow("Target framework", Markup.Escape(options.DotNetVersion));
-        table.AddRow("Architecture", "DDD (Domain-Driven Design)");
-        table.AddRow("Database", "PostgreSQL (EF Core, Code First)");
+        table.AddRow("Architecture", Markup.Escape(options.Architecture.ToDisplayName()));
+        table.AddRow("Database", Markup.Escape(options.Database.ToDisplayName()));
         table.AddRow("Docker", options.IncludeDocker ? "Yes" : "No");
         table.AddRow("Optional packages", FormatPackages(options.Packages));
 
@@ -88,7 +88,7 @@ public static class ConsoleRenderer
         }
         else
         {
-            AnsiConsole.MarkupLine($"  [grey]dotnet run --project[/] src/{Markup.Escape(options.ApiProject)}");
+            AnsiConsole.MarkupLine($"  [grey]dotnet run --project[/] src/{Markup.Escape(options.MainProject)}");
         }
     }
 
@@ -104,12 +104,12 @@ public static class ConsoleRenderer
 
     public static void RenderHelp()
     {
-        AnsiConsole.MarkupLine("[bold]monorepo-dotnet[/] — interactive ASP.NET Core DDD solution generator");
+        AnsiConsole.MarkupLine("[bold]monorepo-dotnet[/] — interactive ASP.NET Core solution generator");
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine("[grey]Usage:[/] monorepo-dotnet [bold][[--help]][/]");
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine("The CLI is interactive: it asks for the solution name, output directory,");
-        AnsiConsole.MarkupLine("target framework, architecture, database, Docker and optional packages.");
+        AnsiConsole.MarkupLine("target framework, architecture (DDD, Clean, 1-Layer, MVC), database, Docker and optional packages.");
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine("[grey]Requirements:[/] .NET SDK 10.0.100+, Docker (optional), dotnet-ef (optional).");
     }

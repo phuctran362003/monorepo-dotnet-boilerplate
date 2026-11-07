@@ -17,7 +17,7 @@ builder.Logging.AddSimpleConsole(options =>
 });
 
 builder.Services.AddInfrastructure();
-builder.Services.AddSingleton<ISolutionGenerator, DddSolutionGenerator>();
+builder.Services.AddSingleton<ISolutionGenerator, SolutionGenerator>();
 builder.Services.AddSingleton<ConfigurationPrompt>();
 builder.Services.AddSingleton<CliApplication>();
 

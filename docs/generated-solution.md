@@ -1,8 +1,23 @@
 # Generated solution
 
-Every generated solution is a self-contained ASP.NET Core 10 Web API organized
-with Domain-Driven Design. This page describes what the generator produces and
-how to work with it.
+Every generated solution is a self-contained ASP.NET Core 10 application.
+This page describes the DDD layout in detail; the differences for Clean
+Architecture, 1-layer and MVC are summarized below.
+
+## Architecture variants
+
+| Architecture | Projects | Notes |
+| --- | --- | --- |
+| DDD | `API`, `Application`, `Domain`, `Infrastructure` | Aggregates, value objects and domain events. |
+| Clean | `WebApi`, `Application`, `Domain`, `Infrastructure` | Simple entity model; dependencies point inward. |
+| 1-Layer | `{SolutionName}` | One web project: `Controllers`, `Products`, `Models`, `Data`. |
+| MVC | `{SolutionName}.Web` | One web project with `Controllers`, `Views`, `ViewModels`, `Services`, `Data`. |
+
+All variants share the root files, database/EF Core setup, Docker templates
+and optional-package wiring. The sections below use the DDD names
+(`{SolutionName}.API`, `Persistence/Migrations`); for Clean use
+`{SolutionName}.WebApi`, and for 1-layer/MVC use the single main project with
+`Data/Migrations` as the migration output directory.
 
 ## Layout
 
@@ -115,20 +130,30 @@ Pinned versions live in
 [`PackageVersions.cs`](../src/MonorepoDotnet.Core/Generation/PackageVersions.cs)
 and are substituted into every template, so all generated projects agree.
 
-## PostgreSQL and EF Core
+## PostgreSQL or SQL Server and EF Core
 
 The connection string is read from `ConnectionStrings:Default`:
 
 ```text
+# PostgreSQL
 Host=localhost;Port=5432;Database={docker-name};Username=postgres;Password=
+
+# SQL Server
+Server=localhost,1433;Database={docker-name};User Id=sa;TrustServerCertificate=True;Encrypt=False
 ```
 
-- In Docker Compose the API receives `Host=postgres` (the service name) plus
-  credentials from `.env`; `localhost` is never used inside a container.
+- In Docker Compose the API receives the service name (`postgres` or
+  `sqlserver`) plus credentials from `.env`; `localhost` is never used inside a
+  container.
 - `appsettings.json` intentionally leaves the password empty. The real password
   is generated once into `.env`, which is git-ignored.
+- SQL Server passwords come from `Database:Password` (`Database__Password`
+  environment variable) and are merged into the connection string with
+  `SqlConnectionStringBuilder`, so the secret never has to live in
+  `appsettings.json`.
 - `ApplicationDbContextFactory` supplies a placeholder connection string at
-  design time, so `dotnet ef migrations add` does not need a running database.
+  design time (and reads `Database__Password`), so `dotnet ef migrations add`
+  does not need a running database.
 
 Commands, run from the solution root:
 
@@ -154,25 +179,29 @@ runtime as a non-root user (`USER $APP_UID`) listening on port 8080.
 `docker-compose.yml` defines:
 
 - `api` — built from the local `Dockerfile`, waits for healthy dependencies.
-- `postgres` — `postgres:17-alpine`, healthcheck, named volume.
+- `postgres` — `postgres:17-alpine`, healthcheck, named volume (PostgreSQL only).
+- `sqlserver` — `mcr.microsoft.com/mssql/server:2022-latest`, `Developer` edition,
+  SQL login healthcheck, named volume (SQL Server only).
 - `redis` — `redis:7-alpine` with AOF, only when Redis is selected.
 - A bridge network and named volumes for persistence.
 - All secrets and ports come from `.env`.
 
 `.env.example` documents every variable. `.env` is generated with a random
-48-character hexadecimal password and is listed in `.gitignore`.
+48-character hexadecimal password and is listed in `.gitignore`. SQL Server
+passwords get a `Aa!` suffix so they satisfy the SQL Server complexity policy.
 
 The Compose project name is the lower-cased solution name
 (`name: {docker-name}`), so containers, networks and volumes are prefixed with
-it (`{docker-name}-api-1`, `{docker-name}_{docker-name}-postgres-data`, …). No
-`container_name` is set, which lets you run more than one stack without name
-clashes.
+it (`{docker-name}-api-1`, `{docker-name}_{docker-name}-postgres-data`,
+`{docker-name}_{docker-name}-sqlserver-data`, …). No `container_name` is set,
+which lets you run more than one stack without name clashes.
 
 ```bash
 docker compose up --build
-docker compose exec api sh          # shell inside the API container
-docker compose exec postgres psql -U postgres -d {docker-name}
-docker compose exec redis redis-cli # only with Redis
+docker compose exec api sh                              # shell inside the API container
+docker compose exec postgres psql -U postgres -d {docker-name}   # PostgreSQL
+docker compose exec sqlserver /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa  # SQL Server
+docker compose exec redis redis-cli                     # only with Redis
 ```
 
 The API is exposed at `http://localhost:8080` by default.

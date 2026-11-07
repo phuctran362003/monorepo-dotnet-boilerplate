@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace {{Namespace}}.API.Filters;
+namespace {{ApiNamespace}}.Filters;
 
 /// <summary>
 /// Resolves a registered FluentValidation validator for each action argument

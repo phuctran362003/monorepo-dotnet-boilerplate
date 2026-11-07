@@ -1,4 +1,4 @@
-namespace {{Namespace}}.Domain.Exceptions;
+namespace {{DomainNamespace}}.Exceptions;
 
 /// <summary>
 /// Raised when a business rule is violated. Infrastructure maps it to an HTTP

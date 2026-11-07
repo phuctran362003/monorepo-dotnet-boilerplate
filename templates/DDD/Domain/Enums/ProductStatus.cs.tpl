@@ -1,4 +1,4 @@
-namespace {{Namespace}}.Domain.Enums;
+namespace {{DomainNamespace}}.Enums;
 
 public enum ProductStatus
 {

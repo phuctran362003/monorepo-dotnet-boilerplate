@@ -1,7 +1,7 @@
 using FluentValidation;
-using {{Namespace}}.Application.Products.Dtos;
+using {{ApplicationNamespace}}.Products.Dtos;
 
-namespace {{Namespace}}.Application.Products.Validators;
+namespace {{ApplicationNamespace}}.Products.Validators;
 
 public sealed class CreateProductRequestValidator : AbstractValidator<CreateProductRequest>
 {

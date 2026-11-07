@@ -1,7 +1,7 @@
-using {{Namespace}}.Domain.Common;
-using {{Namespace}}.Domain.Exceptions;
+using {{DomainNamespace}}.Common;
+using {{DomainNamespace}}.Exceptions;
 
-namespace {{Namespace}}.Domain.ValueObjects;
+namespace {{DomainNamespace}}.ValueObjects;
 
 /// <summary>Validated product name value object.</summary>
 public sealed class ProductName : ValueObject

@@ -1,8 +1,9 @@
 {
   "ConnectionStrings": {
-    "Default": "Host=localhost;Port={{PostgresPort}};Database={{DatabaseName}};Username={{PostgresUser}};Password="{{#if Redis}},
-    "Redis": "localhost:6379"{{/if}}
-  },
+{{#if Postgres}}    "Default": "Host=localhost;Port={{DatabasePort}};Database={{DatabaseName}};Username={{DatabaseUser}};Password="{{#if Redis}},{{/if}}
+{{/if}}{{#if SqlServer}}    "Default": "Server=localhost,{{DatabasePort}};Database={{DatabaseName}};User Id={{DatabaseUser}};TrustServerCertificate=True;Encrypt=False"{{#if Redis}},{{/if}}
+{{/if}}{{#if Redis}}    "Redis": "localhost:6379"
+{{/if}}  },
   "Database": {
     "ApplyMigrations": false
   },

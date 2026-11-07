@@ -1,11 +1,11 @@
 {{#if MediatR}}using MediatR;
-using {{Namespace}}.Application.Products.Commands;
-using {{Namespace}}.Application.Products.Queries;
-{{/if}}{{#if !MediatR}}using {{Namespace}}.Application.Products;
-{{/if}}using {{Namespace}}.Application.Products.Dtos;
+using {{ApplicationNamespace}}.Products.Commands;
+using {{ApplicationNamespace}}.Products.Queries;
+{{/if}}{{#if !MediatR}}using {{ApplicationNamespace}}.Products;
+{{/if}}using {{ApplicationNamespace}}.Products.Dtos;
 using Microsoft.AspNetCore.Mvc;
 
-namespace {{Namespace}}.API.Controllers;
+namespace {{ApiNamespace}}.Controllers;
 
 [ApiController]
 [Route("api/products")]

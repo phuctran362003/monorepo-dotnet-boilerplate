@@ -1,7 +1,8 @@
 # Architecture
 
 `monorepo-dotnet` is a three-project .NET 10 solution that generates ASP.NET Core
-DDD solutions. The generator itself follows a lightweight layered architecture.
+solutions in DDD, Clean Architecture, 1-layer and MVC layouts. The generator
+itself follows a lightweight layered architecture.
 
 ```text
 MonorepoDotnet.CLI ──────────► Core
@@ -32,25 +33,27 @@ MonorepoDotnet.CLI ──────────► Core
 | `IFileSystem` | `FileSystemService` | All file and directory access used during generation. |
 | `ITemplateProvider` | `TemplateProvider` | Reads templates from embedded resources (single-file friendly) with a development fallback to `templates/`. |
 | `ITemplateRenderer` | `TemplateRenderer` | `{{Token}}` replacement plus `{{#if Flag}}` blocks. Fails fast on unknown tokens and flags. |
-| `IEnvironmentValidator` | `EnvironmentValidator` | .NET SDK version, Docker CLI/Engine, output directory permissions, solution name. |
-| `ISolutionGenerator` | `DddSolutionGenerator` | Orchestrates the generation pipeline. |
+| `IEnvironmentValidator` | `EnvironmentValidator` | .NET SDK version, Docker CLI/Engine, output directory permissions, output path validity, solution path availability, solution name. |
+| `ISolutionGenerator` | `SolutionGenerator` | Orchestrates the generation pipeline for every architecture. |
 
 ## Generation pipeline
 
-`DddSolutionGenerator.GenerateAsync` runs eight steps and reports each one
+`SolutionGenerator.GenerateAsync` runs eight steps and reports each one
 through `IProgress<GenerationProgress>`:
 
 1. **Prepare** — validate options and create `{OutputDirectory}/{SolutionName}`.
    A non-empty existing directory aborts immediately; existing files are never
    overwritten.
-2. **Write project files** — render every entry of `DddTemplateManifest` for the
-   selected options (53 templates at most, 42 files for the default options).
+2. **Write project files** — render every entry returned by
+   `ArchitectureTemplateManifest.For(options)` for the selected architecture
+   and options.
 3. **Write Docker environment** — generate `.env` with a random 48-character
    password when Docker is enabled.
 4. **Create solution** — `dotnet new sln` followed by `dotnet sln add`.
 5. **Restore** — `dotnet restore {SolutionName}.sln`.
 6. **Build** — `dotnet build --no-restore -c Debug --nologo`.
-7. **Initial migration** — `dotnet ef migrations add InitialCreate`, best effort.
+7. **Initial migration** — `dotnet ef migrations add InitialCreate`, using the
+   project/startup project/output directory from `SolutionLayouts`, best effort.
 8. **Finalize** — collect warnings and return `GenerationResult`.
 
 Failure semantics: a failing step throws `GenerationException`, the CLI shows a
@@ -69,7 +72,32 @@ same cleanup and exits with code `130`.
   names and the database name.
 - `OutputDirectory`, `DotNetVersion`, `Architecture`, `Database`,
   `IncludeDocker`, `Packages` (flags enum), `BuildAfterGeneration`.
-- Derived: `RootDirectory`, `DockerName`, project names, `HasPackage(...)`.
+- Derived: `RootDirectory`, `DockerName`, project names, `MainProject`,
+  `HasPackage(...)`.
+
+The output directory is validated by `OutputPathValidator`:
+
+- `Validate(outputDirectory)` checks invalid path/file-name characters,
+  reserved Windows device names, missing drive roots, existing files in the
+  path, length and accessibility.
+- `ValidateTarget(outputDirectory, solutionName)` additionally rejects an
+  existing non-empty `{OutputDirectory}/{SolutionName}` folder.
+
+`ConfigurationPrompt` runs these checks before the environment report, and
+`EnvironmentValidator` and `SolutionGenerator` repeat them as a safety net.
+
+`SolutionLayouts.Create(options)` maps an architecture to its projects, main
+project, migration project/startup project and migration output directory. The
+generator uses that layout for `dotnet sln add`, `dotnet ef` and the Dockerfile
+`COPY`/`ENTRYPOINT` lines.
+
+The database choice is also resolved into tokens and flags:
+`DatabaseProviderExtensions` supplies display names, `GeneratorOptions` derives
+`DatabasePort`, `DatabaseUser` and `DatabaseService`, and the generator adds
+`{{Database}}`, `{{DatabasePort}}`, `{{DatabaseUser}}`, `{{DatabaseService}}`
+plus the `{{#if Postgres}}` / `{{#if SqlServer}}` flags. Templates therefore emit
+the matching EF Core provider, connection string, Compose service and `.env`
+keys without separate per-database file trees.
 
 `BuildTemplateValues` converts the options into the token dictionary
 (`{{SolutionName}}`, `{{TargetFramework}}`, `{{EfCoreVersion}}`, …) and
@@ -80,13 +108,19 @@ upgrading is a one-file change.
 
 ## Templates
 
-Templates live in `templates/DDD/**` and are embedded into
+Templates live under `templates/` and are embedded into
 `MonorepoDotnet.Infrastructure` as resources named
-`templates/DDD/<relative path>`:
+`templates/<architecture>/<relative path>`:
+
+- `templates/DDD/**` — DDD projects plus the shared root and Docker templates.
+- `templates/Clean/**` — Clean-specific overrides (simple entity, mappings,
+  configuration, README); shared files reuse the DDD templates.
+- `templates/SingleLayer/**` — single-project Web API layout.
+- `templates/Mvc/**` — single-project MVC layout with Razor views.
 
 ```xml
-<EmbeddedResource Include="..\..\templates\DDD\**\*"
-                  LogicalName="templates/DDD/%(RecursiveDir)%(Filename)%(Extension)"
+<EmbeddedResource Include="..\..\templates\**\*"
+                  LogicalName="templates/%(RecursiveDir)%(Filename)%(Extension)"
                   WithCulture="false" />
 ```
 
@@ -96,8 +130,8 @@ culture-specific satellite resource and the build fails.
 Because templates are embedded, `dotnet publish -p:PublishSingleFile=true`
 produces a self-contained executable that does not need a `templates` folder
 next to it. During development, `TemplateProvider` also looks for
-`templates/DDD/...` walking up from the current directory (overridable with
-`MONOREPODOTNET_TEMPLATES`).
+`templates/<architecture>/...` walking up from the current directory
+(overridable with `MONOREPODOTNET_TEMPLATES`).
 
 ### Template syntax
 
@@ -114,6 +148,8 @@ template path, output path and optional predicate (package or Docker flag), so
 adding a file is a single list entry plus a template.
 
 ## Generated solution architecture
+
+DDD:
 
 ```text
 {SolutionName}/
@@ -134,10 +170,16 @@ adding a file is a single list entry plus a template.
 └── {SolutionName}.sln
 ```
 
-Project dependencies:
+Clean Architecture uses `{SolutionName}.WebApi` instead of `{SolutionName}.API`
+and a simpler domain model. The 1-layer layout uses one project,
+`src/{SolutionName}`, with `Controllers`, `Models`, `Data`, `Products` and
+related folders. MVC uses one project, `src/{SolutionName}.Web`, with
+`Controllers`, `Views`, `ViewModels`, `Services` and `Data`.
+
+DDD/Clean project dependencies:
 
 ```text
-API ──► Application, Infrastructure
+API/WebApi ──► Application, Infrastructure
 Infrastructure ──► Application, Domain
 Application ──► Domain
 Domain ──► (nothing)
@@ -147,7 +189,7 @@ Domain contains entities, value objects, enums, domain events, domain
 exceptions and repository interfaces. Application contains use cases, DTOs,
 interfaces and its own DI registration. Infrastructure contains the
 `ApplicationDbContext`, entity configurations, repositories, migrations and a
-design-time factory. API contains controllers, middleware, extensions and
+design-time factory. API/WebApi contains controllers, middleware, extensions and
 `Program.cs`.
 
 See [generated-solution.md](generated-solution.md) for the full file inventory.
@@ -171,5 +213,6 @@ codes: `0` success, `1` failure/cancel, `130` Ctrl+C.
   captures stdout/stderr for error reporting.
 - Generated secrets never live in source: `.env` is generated, git-ignored, and
   referenced from Compose; `appsettings.json` keeps the password empty.
-- Generated solutions target `net10.0` only; unsupported architectures,
-  databases and frameworks are rejected by `ValidateOptions`.
+- Generated solutions target `net10.0`; PostgreSQL and SQL Server are supported
+  and all four architectures are implemented. Other databases and frameworks
+  are rejected by `ValidateOptions`.

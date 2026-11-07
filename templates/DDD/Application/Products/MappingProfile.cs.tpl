@@ -1,8 +1,8 @@
 using AutoMapper;
-using {{Namespace}}.Application.Products.Dtos;
-using {{Namespace}}.Domain.Entities;
+using {{ApplicationNamespace}}.Products.Dtos;
+using {{DomainNamespace}}.Entities;
 
-namespace {{Namespace}}.Application.Products;
+namespace {{ApplicationNamespace}}.Products;
 
 /// <summary>
 /// AutoMapper profile for the sample Product slice. Add one mapping per DTO

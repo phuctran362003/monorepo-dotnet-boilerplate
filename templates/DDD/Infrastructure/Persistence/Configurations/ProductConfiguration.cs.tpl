@@ -1,9 +1,9 @@
-using {{Namespace}}.Domain.Entities;
-using {{Namespace}}.Domain.ValueObjects;
+using {{DomainNamespace}}.Entities;
+using {{DomainNamespace}}.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace {{Namespace}}.Infrastructure.Persistence.Configurations;
+namespace {{InfrastructureNamespace}}.Persistence.Configurations;
 
 public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
 {

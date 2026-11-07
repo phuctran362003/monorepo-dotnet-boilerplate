@@ -1,13 +1,14 @@
-using Microsoft.EntityFrameworkCore;
+{{#if SqlServer}}using Microsoft.Data.SqlClient;
+{{/if}}using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
-namespace {{Namespace}}.Infrastructure.Persistence;
+namespace {{InfrastructureNamespace}}.Persistence;
 
 /// <summary>
 /// Design-time factory used by the EF Core CLI. Migrations can be created
-/// without a running PostgreSQL; commands that do connect (database update)
+/// without a running {{Database}}; commands that do connect (database update)
 /// read the connection string from the ConnectionStrings__Default environment
-/// variable, exactly like the API does.
+/// variable (and the password from Database__Password), exactly like the API does.
 /// </summary>
 public sealed class ApplicationDbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext>
 {
@@ -15,13 +16,25 @@ public sealed class ApplicationDbContextFactory : IDesignTimeDbContextFactory<Ap
     {
         var connectionString =
             Environment.GetEnvironmentVariable("ConnectionStrings__Default")
-            ?? "Host=localhost;Port={{PostgresPort}};Database={{DatabaseName}};Username={{PostgresUser}}";
+{{#if Postgres}}            ?? "Host=localhost;Port={{DatabasePort}};Database={{DatabaseName}};Username={{DatabaseUser}}";
+{{/if}}{{#if SqlServer}}            ?? "Server=localhost,{{DatabasePort}};Database={{DatabaseName}};User Id={{DatabaseUser}};TrustServerCertificate=True";
 
-        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseNpgsql(
+        var databasePassword = Environment.GetEnvironmentVariable("Database__Password");
+
+        if (!string.IsNullOrWhiteSpace(databasePassword))
+        {
+            var builder = new SqlConnectionStringBuilder(connectionString) { Password = databasePassword };
+            connectionString = builder.ConnectionString;
+        }
+
+{{/if}}        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+{{#if Postgres}}            .UseNpgsql(
                 connectionString,
                 npgsql => npgsql.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName))
-            .Options;
+{{/if}}{{#if SqlServer}}            .UseSqlServer(
+                connectionString,
+                sqlServer => sqlServer.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName))
+{{/if}}            .Options;
 
         return new ApplicationDbContext(options);
     }

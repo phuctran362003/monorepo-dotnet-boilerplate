@@ -1,6 +1,6 @@
-using {{Namespace}}.Domain.Entities;
+using {{DomainNamespace}}.Entities;
 
-namespace {{Namespace}}.Application.Products.Dtos;
+namespace {{ApplicationNamespace}}.Products.Dtos;
 
 public sealed record ProductDto(
     Guid Id,

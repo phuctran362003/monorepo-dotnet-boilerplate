@@ -1,8 +1,8 @@
-using {{Namespace}}.Domain.Entities;
-using {{Namespace}}.Domain.Repositories;
+using {{DomainNamespace}}.Entities;
+using {{DomainNamespace}}.Repositories;
 using Microsoft.EntityFrameworkCore;
 
-namespace {{Namespace}}.Infrastructure.Persistence.Repositories;
+namespace {{InfrastructureNamespace}}.Persistence.Repositories;
 
 public sealed class ProductRepository : IProductRepository
 {

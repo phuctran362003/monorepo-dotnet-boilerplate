@@ -1,4 +1,4 @@
-namespace {{Namespace}}.Domain.Common;
+namespace {{DomainNamespace}}.Common;
 
 /// <summary>
 /// Base class for immutable value objects. Equality is based on the components

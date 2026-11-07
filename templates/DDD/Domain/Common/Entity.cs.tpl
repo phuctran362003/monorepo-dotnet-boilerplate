@@ -1,4 +1,4 @@
-namespace {{Namespace}}.Domain.Common;
+namespace {{DomainNamespace}}.Common;
 
 /// <summary>
 /// Base type for domain entities. Entities are identified by their id, not by

@@ -1,6 +1,6 @@
 using MediatR;
-using {{Namespace}}.Application.Products.Dtos;
+using {{ApplicationNamespace}}.Products.Dtos;
 
-namespace {{Namespace}}.Application.Products.Queries;
+namespace {{ApplicationNamespace}}.Products.Queries;
 
 public sealed record GetProductByIdQuery(Guid Id) : IRequest<ProductDto?>;

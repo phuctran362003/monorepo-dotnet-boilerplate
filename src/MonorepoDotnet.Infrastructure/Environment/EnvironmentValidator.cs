@@ -43,6 +43,11 @@ public sealed class EnvironmentValidator : IEnvironmentValidator
                 : new EnvironmentCheck("Solution name", CheckSeverity.Error, string.Join(" ", errors)));
         }
 
+        if (!string.IsNullOrWhiteSpace(request.OutputDirectory) && request.SolutionName is not null)
+        {
+            ValidateSolutionPath(checks, request.OutputDirectory, request.SolutionName);
+        }
+
         return new EnvironmentReport(checks);
     }
 
@@ -138,27 +143,36 @@ public sealed class EnvironmentValidator : IEnvironmentValidator
 
     private void ValidateOutputDirectory(List<EnvironmentCheck> checks, string outputDirectory)
     {
-        var probeFile = Path.Combine(
-            Path.GetFullPath(outputDirectory),
-            $".monorepo-dotnet-write-test-{Guid.NewGuid():N}");
+        var pathErrors = OutputPathValidator.Validate(outputDirectory);
+        if (pathErrors.Count > 0)
+        {
+            checks.Add(new EnvironmentCheck(
+                "Output directory",
+                CheckSeverity.Error,
+                string.Join(" ", pathErrors)));
+            return;
+        }
+
+        var fullPath = OutputPathValidator.Normalize(outputDirectory);
+        var probeFile = Path.Combine(fullPath, $".monorepo-dotnet-write-test-{Guid.NewGuid():N}");
 
         try
         {
-            _fileSystem.CreateDirectory(outputDirectory);
+            _fileSystem.CreateDirectory(fullPath);
             _fileSystem.WriteAllTextAsync(probeFile, "probe").GetAwaiter().GetResult();
             _fileSystem.DeleteFile(probeFile);
 
             checks.Add(new EnvironmentCheck(
                 "Output directory",
                 CheckSeverity.Info,
-                $"Output directory is writable: {Path.GetFullPath(outputDirectory)}"));
+                $"Output directory is writable: {fullPath}"));
         }
         catch (Exception ex)
         {
             checks.Add(new EnvironmentCheck(
                 "Output directory",
                 CheckSeverity.Error,
-                $"Output directory '{outputDirectory}' is not writable: {ex.Message}"));
+                $"Output directory '{fullPath}' is not writable: {ex.Message}"));
         }
         finally
         {
@@ -171,5 +185,36 @@ public sealed class EnvironmentValidator : IEnvironmentValidator
                 // Best effort cleanup.
             }
         }
+    }
+
+    private static void ValidateSolutionPath(
+        List<EnvironmentCheck> checks,
+        string outputDirectory,
+        string solutionName)
+    {
+        // The dedicated output-directory and solution-name checks already report
+        // these problems; only probe the combined path when both inputs are valid.
+        if (OutputPathValidator.Validate(outputDirectory).Count > 0 ||
+            !SolutionNameValidator.IsValid(solutionName))
+        {
+            return;
+        }
+
+        var errors = OutputPathValidator.ValidateTarget(outputDirectory, solutionName);
+
+        if (errors.Count > 0)
+        {
+            checks.Add(new EnvironmentCheck(
+                "Solution path",
+                CheckSeverity.Error,
+                string.Join(" ", errors)));
+            return;
+        }
+
+        var targetPath = Path.Combine(OutputPathValidator.Normalize(outputDirectory), solutionName.Trim());
+        checks.Add(new EnvironmentCheck(
+            "Solution path",
+            CheckSeverity.Info,
+            $"Solution path is available: {targetPath}"));
     }
 }

@@ -6,7 +6,7 @@ This file is the source of truth for product goals, architecture, phases, coding
 
 ## Current status
 
-**Completed:** Phases 1–6.
+**Completed:** Phases 1–8.
 
 - Phase 1 — Foundation: three-project solution, DI, `ProcessRunner`, file system, template provider/renderer, environment and name validation.
 - Phase 2 — DDD generator: 53 embedded templates, `DddTemplateManifest`, `DddSolutionGenerator`, solution/project creation, restore, build.
@@ -14,10 +14,12 @@ This file is the source of truth for product goals, architecture, phases, coding
 - Phase 4 — Docker: multi-stage `Dockerfile`, Compose with PostgreSQL/Redis, healthchecks, volumes, network, `.env`/`.env.example`.
 - Phase 5 — Interactive CLI: Spectre.Console prompts, environment report, overwrite guard, summary + confirmation, progress, success/failure panels, exit codes.
 - Phase 6 — Distribution: single-file `win-x64` publish verified, embedded templates confirmed inside the published executable, global-tool packaging configured.
+- Phase 7 — Architectures and path safety: DDD, Clean Architecture, 1-layer and MVC generators; `SolutionLayouts`; architecture-specific manifests/templates; `OutputPathValidator` for prompt, environment and generator checks.
+- Phase 8 — SQL Server: database prompt offers PostgreSQL and SQL Server; per-provider EF Core package, `UseNpgsql`/`UseSqlServer` wiring, connection strings, Compose service (`postgres`/`sqlserver`), `.env` keys and SQL Server password handling via `Database:Password`.
 
-**Verified end to end:** generation with no packages, with all five optional packages, and without Docker; `dotnet build`; `dotnet ef migrations add`; `docker compose up --build`; `/health`, `GET/POST /api/products`; FluentValidation returning 400; Redis caching (`{name}:products:all`); opt-in `APPLY_MIGRATIONS=true` creating the schema on startup.
+**Verified end to end:** generation for all four architectures with both databases, with all five optional packages and with none (plus Docker on/off), `dotnet build` for every combination, `dotnet ef migrations add` for every combination (DDD/Clean `Persistence/Migrations`, 1-layer/MVC `Data/Migrations`; SQL Server migrations use SQL Server column types), `docker compose config` for both providers, and path validation for invalid characters, reserved names, missing drives, file collisions and non-empty targets. DDD Docker smoke tests (`docker compose up`, `/health`, `GET/POST /api/products`, Redis) remain supported; the original DDD end-to-end scenarios were run against PostgreSQL.
 
-**Not implemented (out of MVP scope):** test project generation, additional architectures/databases/frameworks, non-interactive/CI mode.
+**Not implemented (out of MVP scope):** test project generation, additional databases/frameworks, non-interactive/CI mode.
 
 ## 1. Technology Stack
 
@@ -30,10 +32,10 @@ This file is the source of truth for product goals, architecture, phases, coding
 - Template-based code generation.
 
 **Generated projects:**
-- ASP.NET Core 10 Web API.
-- Domain-Driven Design (DDD).
+- ASP.NET Core 10 Web API (or MVC).
+- Domain-Driven Design (DDD), Clean Architecture, 1-layer or MVC layout.
 - Entity Framework Core.
-- PostgreSQL (Npgsql).
+- PostgreSQL (Npgsql) or SQL Server (Microsoft.EntityFrameworkCore.SqlServer).
 - Docker and Docker Compose.
 
 Use compatible, stable package versions.
@@ -50,12 +52,15 @@ monorepo-dotnet/
 │   └── MonorepoDotnet.Infrastructure/
 │
 ├── templates/
-│   └── DDD/
-│       ├── API/
-│       ├── Application/
-│       ├── Domain/
-│       ├── Infrastructure/
-│       └── Docker/
+│   ├── DDD/
+│   │   ├── API/
+│   │   ├── Application/
+│   │   ├── Domain/
+│   │   ├── Infrastructure/
+│   │   └── Docker/
+│   ├── Clean/
+│   ├── SingleLayer/
+│   └── Mvc/
 │
 ├── docs/
 ├── Directory.Build.props
@@ -85,8 +90,8 @@ The CLI MUST ask the user for the following configuration:
 1. Solution name (required, no hardcoded default).
 2. Output directory.
 3. .NET version (default .NET 10).
-4. Architecture (DDD for MVP).
-5. Database (PostgreSQL for MVP).
+4. Architecture (DDD, Clean Architecture, 1-layer or MVC).
+5. Database (PostgreSQL or SQL Server for MVP).
 6. Docker (default Yes).
 7. Generate Unit Tests and Integration Tests (default No).
 8. Optional packages:
@@ -187,20 +192,25 @@ Domain -> No project dependencies
 
 Keep business logic inside the appropriate DDD layers.
 
-## 5. PostgreSQL and EF Core
+## 5. PostgreSQL, SQL Server and EF Core
 
 Automatically configure and install:
 
 - Microsoft.EntityFrameworkCore
 - Microsoft.EntityFrameworkCore.Design
-- Npgsql.EntityFrameworkCore.PostgreSQL
+- Npgsql.EntityFrameworkCore.PostgreSQL (PostgreSQL)
+- Microsoft.EntityFrameworkCore.SqlServer (SQL Server)
 
 Generate:
 - ApplicationDbContext.
-- PostgreSQL connection string.
+- Connection string for the selected provider.
 - Dependency injection configuration.
 - Entity configuration structure.
 - Migration directory.
+
+SQL Server passwords are supplied through `Database:Password` / the
+`Database__Password` environment variable and merged with
+`SqlConnectionStringBuilder`; they are never written to `appsettings.json`.
 
 Support EF Core commands:
 
@@ -220,11 +230,11 @@ Generate:
 - docker-compose.yml.
 - .dockerignore.
 - .env.example.
-- PostgreSQL service.
+- PostgreSQL (`postgres`) or SQL Server (`sqlserver`) service.
 - Persistent database volume.
 - Docker networking.
 
-Ensure the API connects to PostgreSQL using the Docker Compose service name rather than localhost.
+Ensure the API connects to the database using the Docker Compose service name (`postgres` or `sqlserver`) rather than localhost.
 
 Never hardcode database passwords. Use environment variables.
 
@@ -287,6 +297,16 @@ Implement incrementally:
 - Publish standalone Windows EXE.
 - Ensure templates are included in published output.
 - Prepare optional .NET Global Tool support.
+
+**Phase 7 — Architectures and Path Safety**
+- Add Clean Architecture, 1-layer and MVC generation options.
+- Generalize solution layout, Docker and EF migration handling per architecture.
+- Validate the output directory and complete solution path at the prompt and in the generator.
+
+**Phase 8 — SQL Server**
+- Offer PostgreSQL and SQL Server in the database prompt.
+- Generate the matching EF Core provider, connection string, Compose service and `.env` keys.
+- Handle SQL Server authentication without storing the password in `appsettings.json`.
 
 ## 9. Coding Standards
 

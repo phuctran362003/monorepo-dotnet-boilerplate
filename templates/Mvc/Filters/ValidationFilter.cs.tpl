@@ -1,0 +1,43 @@
+using FluentValidation;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace {{Namespace}}.Filters;
+
+/// <summary>
+/// Resolves a registered FluentValidation validator for each action argument
+/// and adds the failures to ModelState.
+/// </summary>
+public sealed class ValidationFilter : IAsyncActionFilter
+{
+    public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
+    {
+        var services = context.HttpContext.RequestServices;
+
+        foreach (var argument in context.ActionArguments.Values)
+        {
+            if (argument is null)
+            {
+                continue;
+            }
+
+            var validatorType = typeof(IValidator<>).MakeGenericType(argument.GetType());
+
+            if (services.GetService(validatorType) is not IValidator validator)
+            {
+                continue;
+            }
+
+            var validationContext = new ValidationContext<object>(argument);
+            var validationResult = await validator.ValidateAsync(validationContext, context.HttpContext.RequestAborted);
+
+            foreach (var failure in validationResult.Errors)
+            {
+                context.ModelState.AddModelError(failure.PropertyName, failure.ErrorMessage);
+            }
+        }
+
+        await next();
+    }
+}

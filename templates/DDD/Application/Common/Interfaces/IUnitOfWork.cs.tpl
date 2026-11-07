@@ -1,4 +1,4 @@
-namespace {{Namespace}}.Application.Common.Interfaces;
+namespace {{ApplicationNamespace}}.Common.Interfaces;
 
 /// <summary>Commits pending changes tracked by the persistence layer.</summary>
 public interface IUnitOfWork

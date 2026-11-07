@@ -1,7 +1,7 @@
-{{#if FluentValidation}}using {{Namespace}}.API.Filters;
+{{#if FluentValidation}}using {{ApiNamespace}}.Filters;
 {{/if}}using Microsoft.Extensions.DependencyInjection;
 
-namespace {{Namespace}}.API.Extensions;
+namespace {{ApiNamespace}}.Extensions;
 
 public static class ServiceCollectionExtensions
 {

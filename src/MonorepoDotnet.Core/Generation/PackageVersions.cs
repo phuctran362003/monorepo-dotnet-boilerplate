@@ -18,5 +18,6 @@ public static class PackageVersions
     public const string MediatR = "12.5.0";
     public const string StackExchangeRedis = "3.4.31";
     public const string PostgresImage = "17-alpine";
+    public const string SqlServerImage = "2022-latest";
     public const string RedisImage = "7-alpine";
 }

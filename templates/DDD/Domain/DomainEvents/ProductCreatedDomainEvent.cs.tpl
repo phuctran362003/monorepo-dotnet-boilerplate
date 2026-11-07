@@ -1,5 +1,5 @@
-using {{Namespace}}.Domain.Common;
+using {{DomainNamespace}}.Common;
 
-namespace {{Namespace}}.Domain.DomainEvents;
+namespace {{DomainNamespace}}.DomainEvents;
 
 public sealed record ProductCreatedDomainEvent(Guid ProductId, string Name) : DomainEvent;

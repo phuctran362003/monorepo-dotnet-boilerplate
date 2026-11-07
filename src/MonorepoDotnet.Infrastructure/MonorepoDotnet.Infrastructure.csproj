@@ -13,8 +13,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="..\..\templates\DDD\**\*"
-                      LogicalName="templates/DDD/%(RecursiveDir)%(Filename)%(Extension)"
+    <EmbeddedResource Include="..\..\templates\**\*"
+                      LogicalName="templates/%(RecursiveDir)%(Filename)%(Extension)"
                       WithCulture="false" />
   </ItemGroup>
 

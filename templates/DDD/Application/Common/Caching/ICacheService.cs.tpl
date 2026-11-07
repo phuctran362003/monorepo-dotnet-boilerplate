@@ -1,4 +1,4 @@
-namespace {{Namespace}}.Application.Common.Caching;
+namespace {{ApplicationNamespace}}.Common.Caching;
 
 /// <summary>Distributed cache abstraction implemented by the infrastructure layer.</summary>
 public interface ICacheService

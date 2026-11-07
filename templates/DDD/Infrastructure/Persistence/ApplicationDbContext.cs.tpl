@@ -1,8 +1,8 @@
-using {{Namespace}}.Application.Common.Interfaces;
-using {{Namespace}}.Domain.Entities;
+using {{ApplicationNamespace}}.Common.Interfaces;
+using {{DomainNamespace}}.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace {{Namespace}}.Infrastructure.Persistence;
+namespace {{InfrastructureNamespace}}.Persistence;
 
 public sealed class ApplicationDbContext : DbContext, IUnitOfWork
 {

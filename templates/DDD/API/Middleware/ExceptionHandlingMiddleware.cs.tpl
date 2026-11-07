@@ -1,9 +1,9 @@
 using System.Net;
-using {{Namespace}}.Domain.Exceptions;
+using {{DomainNamespace}}.Exceptions;
 {{#if FluentValidation}}using FluentValidation;
 {{/if}}using Microsoft.AspNetCore.Mvc;
 
-namespace {{Namespace}}.API.Middleware;
+namespace {{ApiNamespace}}.Middleware;
 
 /// <summary>Converts unhandled exceptions into RFC 7807 problem details responses.</summary>
 public sealed class ExceptionHandlingMiddleware

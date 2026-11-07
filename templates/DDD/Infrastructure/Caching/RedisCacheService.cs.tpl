@@ -1,8 +1,8 @@
 using System.Text.Json;
-using {{Namespace}}.Application.Common.Caching;
+using {{ApplicationNamespace}}.Common.Caching;
 using Microsoft.Extensions.Caching.Distributed;
 
-namespace {{Namespace}}.Infrastructure.Caching;
+namespace {{InfrastructureNamespace}}.Caching;
 
 public sealed class RedisCacheService : ICacheService
 {

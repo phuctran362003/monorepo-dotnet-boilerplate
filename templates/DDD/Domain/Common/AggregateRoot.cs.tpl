@@ -1,4 +1,4 @@
-namespace {{Namespace}}.Domain.Common;
+namespace {{DomainNamespace}}.Common;
 
 /// <summary>
 /// Root of an aggregate. Aggregates are the only entry point for modifying the

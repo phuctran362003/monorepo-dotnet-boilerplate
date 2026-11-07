@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>{{TargetFramework}}</TargetFramework>
-    <RootNamespace>{{Namespace}}.Infrastructure</RootNamespace>
+    <RootNamespace>{{InfrastructureNamespace}}</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,8 +16,9 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="{{NpgsqlVersion}}" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="{{ExtensionsVersion}}" />
+{{#if Postgres}}    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="{{NpgsqlVersion}}" />
+{{/if}}{{#if SqlServer}}    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="{{EfCoreVersion}}" />
+{{/if}}    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="{{ExtensionsVersion}}" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="{{ExtensionsVersion}}" />
 {{#if Redis}}    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="{{ExtensionsVersion}}" />
     <PackageReference Include="StackExchange.Redis" Version="{{RedisVersion}}" />

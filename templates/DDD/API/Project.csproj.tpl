@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>{{TargetFramework}}</TargetFramework>
-    <RootNamespace>{{Namespace}}.API</RootNamespace>
+    <RootNamespace>{{ApiNamespace}}</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
