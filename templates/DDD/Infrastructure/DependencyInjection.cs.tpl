@@ -49,8 +49,7 @@ public static class DependencyInjection
                 sqlServer.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName);
                 sqlServer.EnableRetryOnFailure(3);
             }));
-{{/if}}
-        services.AddScoped<IProductRepository, ProductRepository>();
+{{/if}}        services.AddScoped<IProductRepository, ProductRepository>();
         services.AddScoped<IUnitOfWork>(provider => provider.GetRequiredService<ApplicationDbContext>());
 {{#if Redis}}
         var redisConnection = configuration.GetConnectionString("Redis") ?? "localhost:6379";

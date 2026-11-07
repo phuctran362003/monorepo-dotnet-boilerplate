@@ -92,28 +92,57 @@ public sealed class CliApplication
         }
 
         AnsiConsole.WriteLine();
+        AnsiConsole.Write(new Rule("[bold cyan]Generating[/]").LeftJustified());
+        AnsiConsole.WriteLine();
 
         GenerationResult? result = null;
+        var spinner = new SpinnerColumn(Spinner.Known.Dots2)
+        {
+            Style = Color.Cyan1,
+            CompletedText = "✓",
+            CompletedStyle = Color.Green,
+        };
 
         await AnsiConsole.Progress()
             .AutoClear(false)
+            .HideCompleted(false)
             .Columns(
+                spinner,
                 new TaskDescriptionColumn(),
-                new ProgressBarColumn(),
-                new PercentageColumn(),
-                new SpinnerColumn())
+                new ProgressBarColumn
+                {
+                    Width = 28,
+                    CompletedStyle = Color.Cyan1,
+                    FinishedStyle = Color.Green,
+                    RemainingStyle = Color.Grey,
+                    IndeterminateStyle = new Style(foreground: Color.Cyan1, background: Color.Grey23),
+                },
+                new ElapsedTimeColumn { Style = Color.Grey })
             .StartAsync(async context =>
             {
-                var task = context.AddTask("[green]Generating solution[/]", maxValue: 8);
+                var task = context.AddTask("[grey]Starting…[/]", maxValue: 8);
+                task.IsIndeterminate = true;
+
                 var progress = new Progress<GenerationProgress>(update =>
                 {
                     task.MaxValue = update.TotalSteps;
-                    task.Value = update.Step;
-                    task.Description = $"[green]{Markup.Escape(update.Message)}[/]";
+                    task.Description =
+                        $"{Markup.Escape(update.Message)}…  [grey]{update.Step}/{update.TotalSteps}[/]";
                 });
 
                 result = await _solutionGenerator.GenerateAsync(options, progress, cancellationToken);
+                task.IsIndeterminate = false;
                 task.Value = task.MaxValue;
+
+                if (result?.Success == true)
+                {
+                    task.Description = "[green]Generation complete[/]";
+                    return;
+                }
+
+                spinner.CompletedText = "×";
+                spinner.CompletedStyle = Color.Red;
+                task.Description = "[red]Generation failed[/]";
             });
 
         AnsiConsole.WriteLine();

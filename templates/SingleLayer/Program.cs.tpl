@@ -42,8 +42,7 @@ if (!string.IsNullOrWhiteSpace(databasePassword))
     var connectionStringBuilder = new SqlConnectionStringBuilder(connectionString) { Password = databasePassword };
     connectionString = connectionStringBuilder.ConnectionString;
 }
-{{/if}}
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
+{{/if}}builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {{#if Postgres}}    options.UseNpgsql(connectionString, npgsql =>
     {
         npgsql.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName);
@@ -55,7 +54,6 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
         sqlServer.EnableRetryOnFailure(3);
     }));
 {{/if}}
-
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IUnitOfWork>(provider => provider.GetRequiredService<ApplicationDbContext>());
 builder.Services.AddScoped<IProductService, ProductService>();
