@@ -106,7 +106,7 @@ public static class ConsoleRenderer
     {
         AnsiConsole.MarkupLine("[bold]monorepo-dotnet[/] — interactive ASP.NET Core solution generator");
         AnsiConsole.WriteLine();
-        AnsiConsole.MarkupLine("[grey]Usage:[/] monorepo-dotnet [bold][[--help]][/]");
+        AnsiConsole.MarkupLine("[grey]Usage:[/] monorepo [bold][[--help]][/]");
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine("The CLI is interactive: it asks for the solution name, output directory,");
         AnsiConsole.MarkupLine("target framework, architecture (DDD, Clean, 1-Layer, MVC), database, Docker and optional packages.");

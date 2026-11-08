@@ -11,8 +11,14 @@ dotnet run --project src/MonorepoDotnet.CLI
 
 ## Run a published build
 
-See [distribution.md](distribution.md) for producing a single-file executable or
-a .NET global tool.
+After `dotnet publish` (see [distribution.md](distribution.md)), the command
+`monorepo` is installed on PATH. Open any terminal:
+
+```bash
+monorepo
+```
+
+You can also pack it as a .NET global tool; the command name is the same.
 
 ## Command line arguments
 

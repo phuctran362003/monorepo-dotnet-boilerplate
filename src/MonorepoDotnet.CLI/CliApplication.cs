@@ -48,7 +48,7 @@ public sealed class CliApplication
             AnsiConsole.MarkupLine("[red]This tool needs an interactive terminal.[/]");
             AnsiConsole.MarkupLine(
                 "[grey]Standard input is redirected, so the prompts cannot be answered. " +
-                "Run monorepo-dotnet from a console window.[/]");
+                "Run monorepo from a console window.[/]");
             return 1;
         }
 

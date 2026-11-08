@@ -16,12 +16,24 @@ dotnet publish src/MonorepoDotnet.CLI `
   -o artifacts/win-x64
 ```
 
-Output: `artifacts/win-x64/monorepo-dotnet.exe`.
+Output: `artifacts/win-x64/monorepo.exe`.
 
-Run it directly:
+Publish also copies that executable to `%USERPROFILE%\.dotnet\tools\monorepo.exe`,
+which is already on PATH after installing the .NET SDK. After that, open any
+terminal and run:
 
 ```powershell
-.\artifacts\win-x64\monorepo-dotnet.exe
+monorepo
+monorepo --version
+```
+
+Skip the PATH install with `-p:InstallAfterPublish=false`. New terminals pick up
+PATH changes automatically; the current session already sees `.dotnet\tools`.
+
+You can still run the artifact directly:
+
+```powershell
+.\artifacts\win-x64\monorepo.exe
 ```
 
 ### Framework-dependent publish
@@ -81,7 +93,7 @@ The CLI project already declares:
 
 ```xml
 <PackAsTool>true</PackAsTool>
-<ToolCommandName>monorepo-dotnet</ToolCommandName>
+<ToolCommandName>monorepo</ToolCommandName>
 <PackageId>MonorepoDotnet.CLI</PackageId>
 ```
 
@@ -90,7 +102,7 @@ Pack and install locally:
 ```bash
 dotnet pack src/MonorepoDotnet.CLI -c Release -o artifacts/packages
 dotnet tool install --global --add-source artifacts/packages MonorepoDotnet.CLI
-monorepo-dotnet --version
+monorepo --version
 ```
 
 Update or remove:
@@ -115,8 +127,9 @@ The version comes from `<Version>` in `MonorepoDotnet.CLI.csproj` and is what
 ## Verifying a published build
 
 ```powershell
-.\artifacts\win-x64\monorepo-dotnet.exe --version
-.\artifacts\win-x64\monorepo-dotnet.exe --help
+.\artifacts\win-x64\monorepo.exe --version
+.\artifacts\win-x64\monorepo.exe --help
+monorepo --version
 ```
 
 Then run the interactive flow from a directory that does not contain a

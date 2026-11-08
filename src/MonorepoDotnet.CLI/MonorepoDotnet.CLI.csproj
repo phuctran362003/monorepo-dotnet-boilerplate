@@ -3,15 +3,17 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
-    <AssemblyName>monorepo-dotnet</AssemblyName>
+    <AssemblyName>monorepo</AssemblyName>
     <RootNamespace>MonorepoDotnet.CLI</RootNamespace>
 
     <!-- Optional .NET global tool packaging (see docs/distribution.md). -->
     <PackAsTool>true</PackAsTool>
-    <ToolCommandName>monorepo-dotnet</ToolCommandName>
+    <ToolCommandName>monorepo</ToolCommandName>
     <PackageId>MonorepoDotnet.CLI</PackageId>
     <Version>0.1.0</Version>
     <Description>Interactive generator for ASP.NET Core solutions (DDD, Clean, 1-Layer, MVC) with PostgreSQL, EF Core and Docker.</Description>
+    <!-- Copy the published exe onto PATH as `monorepo`. Disable with -p:InstallAfterPublish=false. -->
+    <InstallAfterPublish Condition="'$(InstallAfterPublish)' == ''">true</InstallAfterPublish>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,5 +25,13 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.14" />
     <PackageReference Include="Spectre.Console" Version="0.57.2" />
   </ItemGroup>
+
+  <Target Name="InstallGlobalCommand" AfterTargets="Publish" Condition="'$(InstallAfterPublish)' == 'true' AND '$(OS)' == 'Windows_NT'">
+    <PropertyGroup>
+      <_PublishedExe>$([System.IO.Path]::GetFullPath('$(PublishDir)$(AssemblyName).exe'))</_PublishedExe>
+      <_InstallScript>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\scripts\install-command.ps1'))</_InstallScript>
+    </PropertyGroup>
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(_InstallScript)&quot; -ExePath &quot;$(_PublishedExe)&quot;" />
+  </Target>
 
 </Project>

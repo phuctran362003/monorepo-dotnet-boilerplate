@@ -33,10 +33,18 @@ packages, builds it and creates the initial EF Core migration.
 
 ## Quick start
 
+From source:
+
 ```bash
 git clone <repository>
 cd monorepo-dotnet
 dotnet run --project src/MonorepoDotnet.CLI
+```
+
+After publishing once, run the installed command from any directory:
+
+```bash
+monorepo
 ```
 
 Then answer the prompts. When it finishes:
@@ -165,8 +173,15 @@ dotnet publish src/MonorepoDotnet.CLI -c Release -r win-x64 --self-contained tru
   -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o artifacts/win-x64
 ```
 
-See [docs/distribution.md](docs/distribution.md) for other platforms and global
-tool packaging.
+That also installs `monorepo` on PATH (`%USERPROFILE%\.dotnet\tools`). After it
+finishes, open any terminal:
+
+```powershell
+monorepo
+```
+
+See [docs/distribution.md](docs/distribution.md) for other platforms, skipping
+the PATH install, and global tool packaging.
 
 ## Notes
 
