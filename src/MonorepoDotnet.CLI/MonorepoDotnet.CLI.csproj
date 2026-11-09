@@ -10,9 +10,9 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>monorepo</ToolCommandName>
     <PackageId>monorepo-dotnet</PackageId>
-    <Version>0.1.1</Version>
-    <Authors>Tráº§n Gia PhÃºc</Authors>
-    <Copyright>Copyright (c) 2026 Tráº§n Gia PhÃºc</Copyright>
+    <Version>0.1.2</Version>
+    <Authors>TrÃ¡ÂºÂ§n Gia PhÃƒÂºc</Authors>
+    <Copyright>Copyright (c) 2026 TrÃ¡ÂºÂ§n Gia PhÃƒÂºc</Copyright>
     <Description>Interactive generator for ASP.NET Core solutions (DDD, Clean, 1-Layer, MVC) with PostgreSQL, EF Core and Docker.</Description>
     <PackageTags>dotnet;aspnetcore;ddd;cli;generator;postgresql;sqlserver</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

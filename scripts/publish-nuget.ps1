@@ -70,16 +70,34 @@ function Invoke-WithLoading {
 }
 
 function Invoke-DotNetLogged {
-    param([Parameter(Mandatory)][string[]]$Arguments)
+    param(
+        [Parameter(Mandatory)][string[]]$Arguments,
+        [switch]$AllowFailure
+    )
 
-    $output = & dotnet @Arguments 2>&1 | Out-String
-    if ($LASTEXITCODE -ne 0) {
-        $detail = $output.Trim()
-        if ([string]::IsNullOrWhiteSpace($detail)) {
-            $detail = "dotnet $($Arguments -join ' ') failed (exit $LASTEXITCODE)."
+    $previous = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        $lines = & dotnet @Arguments 2>&1 | ForEach-Object {
+            if ($_ -is [System.Management.Automation.ErrorRecord]) {
+                $_.ToString()
+            } else {
+                "$_"
+            }
         }
-        throw $detail
+    } finally {
+        $ErrorActionPreference = $previous
     }
+
+    $output = ($lines -join [Environment]::NewLine).Trim()
+    if ($LASTEXITCODE -ne 0 -and -not $AllowFailure) {
+        if ([string]::IsNullOrWhiteSpace($output)) {
+            $output = "dotnet $($Arguments -join ' ') failed (exit $LASTEXITCODE)."
+        }
+        throw $output
+    }
+
+    return $output
 }
 
 function Save-UserNuGetApiKey {
@@ -192,17 +210,60 @@ Invoke-WithLoading -Message "Pushing monorepo-dotnet.$newVersion to nuget.org" -
     )
 }
 
-Invoke-WithLoading -Message "Updating local global tool" -Action {
-    $listed = & dotnet tool list --global 2>&1 | Out-String
-    if ($LASTEXITCODE -eq 0 -and ($listed -match 'monorepo-dotnet')) {
-        Invoke-DotNetLogged -Arguments @('tool', 'update', '--global', '--add-source', $packagesDir, 'monorepo-dotnet')
-    } else {
-        Invoke-DotNetLogged -Arguments @('tool', 'install', '--global', '--add-source', $packagesDir, 'monorepo-dotnet')
+$localConfig = Join-Path $packagesDir 'nuget.local.config'
+$localConfigXml = @"
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <packageSources>
+    <clear />
+    <add key="monorepo-local" value="$packagesDir" />
+  </packageSources>
+</configuration>
+"@
+$utf8NoBom = New-Object System.Text.UTF8Encoding $false
+[System.IO.File]::WriteAllText($localConfig, $localConfigXml, $utf8NoBom)
+
+$localToolOk = $true
+$localToolError = $null
+try {
+    Invoke-WithLoading -Message "Installing local global tool $newVersion" -Action {
+        Invoke-DotNetLogged -AllowFailure -Arguments @('tool', 'uninstall', '--global', 'monorepo-dotnet') | Out-Null
+
+        # A previous `dotnet publish` copies a 70MB+ monorepo.exe into
+        # %USERPROFILE%\.dotnet\tools. That is not a global-tool shim, so
+        # `dotnet tool install` fails with "command 'monorepo' conflicts".
+        $toolsDir = Join-Path $env:USERPROFILE '.dotnet\tools'
+        foreach ($name in @('monorepo.exe', 'monorepo', 'monorepo.bat', 'monorepo.cmd')) {
+            $conflict = Join-Path $toolsDir $name
+            if (Test-Path -LiteralPath $conflict) {
+                Remove-Item -LiteralPath $conflict -Force
+            }
+        }
+
+        Invoke-DotNetLogged -Arguments @(
+            'tool', 'install', '--global',
+            '--configfile', $localConfig,
+            '--no-cache',
+            '--version', $newVersion,
+            'monorepo-dotnet'
+        )
     }
+} catch {
+    $localToolOk = $false
+    $localToolError = $_.Exception.Message
+    Write-Host "  $localToolError" -ForegroundColor Yellow
 }
 
 Write-Host ""
-Write-Host "  nuget.org: https://www.nuget.org/packages/monorepo-dotnet/$newVersion" -ForegroundColor Cyan
-Write-Host "  Indexing can take a few minutes. This machine already has $newVersion."
+Write-Host "  nuget.org   [OK]  https://www.nuget.org/packages/monorepo-dotnet/$newVersion" -ForegroundColor Green
+if ($localToolOk) {
+    Write-Host "  local tool  [OK]  monorepo $newVersion  (this machine)" -ForegroundColor Green
+} else {
+    Write-Host "  local tool  [!]   nuget.org is published; local install failed." -ForegroundColor Yellow
+}
 Write-Host "  Others: dotnet tool update --global monorepo-dotnet"
 Write-Host ""
+
+if (-not $localToolOk) {
+    exit 1
+}

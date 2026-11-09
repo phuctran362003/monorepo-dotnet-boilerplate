@@ -6,7 +6,7 @@ color 0B
 
 echo.
 echo   ============================================
-echo     monorepo-dotnet  -  NuGet global tool
+echo     monorepo-dotnet  -  nuget.org + local
 echo   ============================================
 echo.
 echo   Starting...
