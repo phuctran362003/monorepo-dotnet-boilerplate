@@ -128,9 +128,11 @@ public sealed class SolutionGenerator : ISolutionGenerator
             throw new GenerationException(string.Join(" ", pathErrors));
         }
 
-        if (!Enum.IsDefined(options.Architecture))
+        if (!Enum.IsDefined(options.ProjectKind) || !Enum.IsDefined(options.Architecture) ||
+            !options.ProjectKind.IsImplemented(options.Architecture))
         {
-            throw new GenerationException($"Architecture '{options.Architecture}' is not implemented yet.");
+            throw new GenerationException(
+                $"Application '{options.ProjectKind.ToDisplayName()}' with architecture '{options.Architecture}' is not implemented yet.");
         }
 
         if (options.Database != DatabaseProvider.PostgreSql &&
@@ -390,6 +392,7 @@ public sealed class SolutionGenerator : ISolutionGenerator
             ["EfCoreVersion"] = packages.EntityFrameworkCore,
             ["NpgsqlVersion"] = packages.NpgsqlEntityFrameworkCore,
             ["OpenApiVersion"] = packages.AspNetCoreOpenApi,
+            ["SwaggerUiVersion"] = PackageVersions.SwashbuckleSwaggerUi,
             ["ExtensionsVersion"] = packages.MicrosoftExtensions,
             ["JwtBearerVersion"] = packages.JwtBearer,
             ["ODataVersion"] = packages.AspNetCoreOData,

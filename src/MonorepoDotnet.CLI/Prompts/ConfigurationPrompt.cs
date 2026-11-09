@@ -43,11 +43,32 @@ public sealed class ConfigurationPrompt
                 .Title("Target [green].NET version[/]:")
                 .AddChoices(DotNetVersionCatalog.All.Select(profile => profile.ChoiceLabel)));
 
-        var architecture = AnsiConsole.Prompt(
-            new SelectionPrompt<ArchitectureType>()
-                .Title("[green]Architecture[/]:")
-                .AddChoices(ArchitectureTypeExtensions.All())
-                .UseConverter(candidate => candidate.ToDisplayName()));
+        ProjectKind projectKind;
+        ArchitectureType architecture;
+
+        while (true)
+        {
+            projectKind = AnsiConsole.Prompt(
+                new SelectionPrompt<ProjectKind>()
+                    .Title("[green]Application[/]:")
+                    .AddChoices(ProjectKindExtensions.All())
+                    .UseConverter(candidate => candidate.ToDisplayName()));
+
+            architecture = AnsiConsole.Prompt(
+                new SelectionPrompt<ArchitectureType>()
+                    .Title("[green]Architecture[/]:")
+                    .AddChoices(ArchitectureTypeExtensions.For(projectKind))
+                    .UseConverter(candidate => candidate.ToDisplayName(projectKind)));
+
+            if (projectKind.IsImplemented(architecture))
+            {
+                break;
+            }
+
+            AnsiConsole.MarkupLine(
+                "[yellow]Console applications are not implemented yet. Choose Web API or MVC.[/]");
+            AnsiConsole.WriteLine();
+        }
 
         var database = AnsiConsole.Prompt(
             new SelectionPrompt<DatabaseProvider>()
@@ -73,6 +94,7 @@ public sealed class ConfigurationPrompt
             SolutionName = normalizedName,
             OutputDirectory = OutputPathValidator.Normalize(outputDirectory),
             DotNetVersion = dotNetVersion.Split(' ')[0],
+            ProjectKind = projectKind,
             Architecture = architecture,
             Database = database,
             IncludeDocker = includeDocker,

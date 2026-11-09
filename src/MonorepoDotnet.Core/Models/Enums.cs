@@ -1,5 +1,13 @@
 namespace MonorepoDotnet.Core.Models;
 
+/// <summary>Host application chosen before the architecture.</summary>
+public enum ProjectKind
+{
+    WebApi = 0,
+    Mvc = 1,
+    Console = 2
+}
+
 /// <summary>Supported target architectures.</summary>
 public enum ArchitectureType
 {
@@ -28,23 +36,66 @@ public enum OptionalPackage
     MediatR = 1 << 4
 }
 
-public static class ArchitectureTypeExtensions
+public static class ProjectKindExtensions
 {
-    public static string ToDisplayName(this ArchitectureType architecture) => architecture switch
+    public static string ToDisplayName(this ProjectKind projectKind) => projectKind switch
     {
-        ArchitectureType.Ddd => "DDD (Domain-Driven Design)",
-        ArchitectureType.Clean => "Clean Architecture (Domain, Application, Infrastructure, WebApi)",
-        ArchitectureType.SingleLayer => "1-Layer (single ASP.NET Core Web API project)",
-        ArchitectureType.Mvc => "MVC (ASP.NET Core MVC with Razor views)",
-        _ => architecture.ToString()
+        ProjectKind.WebApi => "Web API",
+        ProjectKind.Mvc => "MVC",
+        ProjectKind.Console => "Console",
+        _ => projectKind.ToString()
     };
 
-    public static IEnumerable<ArchitectureType> All()
+    /// <summary>Prompt order. Web API stays first so it remains the default.</summary>
+    public static IEnumerable<ProjectKind> All()
     {
-        yield return ArchitectureType.Ddd;
-        yield return ArchitectureType.Clean;
-        yield return ArchitectureType.SingleLayer;
-        yield return ArchitectureType.Mvc;
+        yield return ProjectKind.WebApi;
+        yield return ProjectKind.Mvc;
+        yield return ProjectKind.Console;
+    }
+
+    public static bool IsImplemented(this ProjectKind projectKind, ArchitectureType architecture) =>
+        projectKind switch
+        {
+            ProjectKind.WebApi => architecture is ArchitectureType.Ddd or ArchitectureType.Clean or ArchitectureType.SingleLayer,
+            ProjectKind.Mvc => architecture is ArchitectureType.Mvc,
+            _ => false
+        };
+}
+
+public static class ArchitectureTypeExtensions
+{
+    public static string ToDisplayName(this ArchitectureType architecture, ProjectKind projectKind) =>
+        (projectKind, architecture) switch
+        {
+            (ProjectKind.WebApi, ArchitectureType.Ddd) => "DDD (Domain-Driven Design)",
+            (ProjectKind.WebApi, ArchitectureType.Clean) => "Clean Architecture (Domain, Application, Infrastructure, WebApi)",
+            (ProjectKind.WebApi, ArchitectureType.SingleLayer) => "1-Layer (single ASP.NET Core Web API project)",
+            (ProjectKind.Mvc, ArchitectureType.Mvc) => "1-Layer (ASP.NET Core MVC with Razor views)",
+            (ProjectKind.Console, ArchitectureType.Ddd) => "DDD (Domain-Driven Design)",
+            (ProjectKind.Console, ArchitectureType.Clean) => "Clean Architecture (Domain, Application, Infrastructure, Console)",
+            (ProjectKind.Console, ArchitectureType.SingleLayer) => "1-Layer (single .NET console project)",
+            _ => architecture.ToString()
+        };
+
+    public static IEnumerable<ArchitectureType> For(ProjectKind projectKind)
+    {
+        switch (projectKind)
+        {
+            case ProjectKind.WebApi:
+                yield return ArchitectureType.Ddd;
+                yield return ArchitectureType.Clean;
+                yield return ArchitectureType.SingleLayer;
+                break;
+            case ProjectKind.Mvc:
+                yield return ArchitectureType.Mvc;
+                break;
+            case ProjectKind.Console:
+                yield return ArchitectureType.Ddd;
+                yield return ArchitectureType.Clean;
+                yield return ArchitectureType.SingleLayer;
+                break;
+        }
     }
 }
 

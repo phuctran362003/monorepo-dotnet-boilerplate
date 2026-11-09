@@ -5,6 +5,7 @@ using {{InfrastructureNamespace}};
 using {{InfrastructureNamespace}}.Persistence;
 {{#if Serilog}}using Serilog;
 {{/if}}using Microsoft.EntityFrameworkCore;
+using Swashbuckle.AspNetCore.SwaggerUI;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +26,10 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/openapi/v1.json", "{{SolutionName}} v1");
+    });
 }
 
 app.UseAuthorization();

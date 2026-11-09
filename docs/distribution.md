@@ -218,7 +218,7 @@ dotnet tool install --global monorepo-dotnet
 monorepo
 ```
 
-Later versions:
+Later versions. The running tool prints this command when nuget.org has a newer stable package:
 
 ```powershell
 dotnet tool update --global monorepo-dotnet

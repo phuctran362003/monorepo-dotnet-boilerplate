@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="{{OpenApiVersion}}" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="{{SwaggerUiVersion}}" />
     <PackageReference Include="Microsoft.AspNetCore.OData" Version="{{ODataVersion}}" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="{{EfCoreVersion}}">
       <PrivateAssets>all</PrivateAssets>

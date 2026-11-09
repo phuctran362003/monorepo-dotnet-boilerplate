@@ -4,6 +4,7 @@ using MonorepoDotnet.Infrastructure.Environment;
 using MonorepoDotnet.Infrastructure.FileSystem;
 using MonorepoDotnet.Infrastructure.Processes;
 using MonorepoDotnet.Infrastructure.Templates;
+using MonorepoDotnet.Infrastructure.Updates;
 
 namespace MonorepoDotnet.Infrastructure;
 
@@ -18,6 +19,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ITemplateRenderer, TemplateRenderer>();
         services.AddSingleton<IEnvironmentValidator, EnvironmentValidator>();
         services.AddSingleton<IDotNetSdkInstaller, DotNetSdkInstaller>();
+        services.AddSingleton<IToolUpdateChecker, NuGetToolUpdateChecker>();
 
         return services;
     }

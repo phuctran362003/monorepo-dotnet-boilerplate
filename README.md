@@ -16,6 +16,12 @@ dotnet tool install --global monorepo-dotnet
 monorepo
 ```
 
+Remove the global tool:
+
+```bash
+dotnet tool uninstall --global monorepo-dotnet
+```
+
 Choose the solution name, .NET version, architecture, database, and packages.
 When generation finishes:
 
@@ -59,7 +65,8 @@ the migration later.
   Compose configuration with a database, volume, health check, and environment
   variables.
 - **Essential packages by layer** — EF Core, EF Tools, Configuration, JWT
-  Bearer, OData, and FluentValidation.AspNetCore with compatible versions.
+  Bearer, OpenAPI, Swagger UI, OData, and FluentValidation.AspNetCore with
+  compatible versions.
 - **Fully wired optional packages** — Serilog, FluentValidation, AutoMapper,
   Redis, and MediatR, not just package references in the `.csproj`.
 - **Sample Product API** — list, get, and create endpoints for an end-to-end

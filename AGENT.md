@@ -8,6 +8,9 @@ This file is the source of truth for product goals, architecture, phases, coding
 
 **Completed:** Phases 1–8, plus .NET 8/9 generation and Microsoft SDK install.
 
+- On startup and on `--version`, the CLI checks nuget.org and, when a newer stable `monorepo-dotnet` package exists, prints `dotnet tool update --global monorepo-dotnet`. The check times out after 3 seconds and stays quiet offline.
+- The CLI asks for the application (Web API, MVC or Console) before architecture. Web API then offers DDD, Clean Architecture and 1-layer. MVC offers the 1-layer Razor layout. Console is shown, then the prompt returns to the application step because console generation is not implemented.
+- Generated API/WebApi and 1-layer solutions expose Swagger UI at `/swagger` in Development (OpenAPI document at `/openapi/v1.json`).
 - Generated solutions can target `net8.0`, `net9.0` or `net10.0` (default 10).
 - Missing or incompatible SDKs surface official Microsoft install commands
   (WinGet `Microsoft.DotNet.SDK.{8|9|10}`, `dotnet-install` from https://dot.net,
@@ -24,7 +27,7 @@ This file is the source of truth for product goals, architecture, phases, coding
 
 **Verified end to end:** generation for all four architectures with both databases, with all five optional packages and with none (plus Docker on/off), `dotnet build` for every combination, `dotnet ef migrations add` for every combination (DDD/Clean `Persistence/Migrations`, 1-layer/MVC `Data/Migrations`; SQL Server migrations use SQL Server column types), `docker compose config` for both providers, and path validation for invalid characters, reserved names, missing drives, file collisions and non-empty targets. DDD Docker smoke tests (`docker compose up`, `/health`, `GET/POST /api/products`, Redis) remain supported; the original DDD end-to-end scenarios were run against PostgreSQL.
 
-Generated project files include baseline packages whose versions follow the selected target framework (`DotNetVersionCatalog`): Domain gets EF Core, EF Core Tools, Configuration, Configuration.Json and JWT Bearer (SQL Server provider only when SQL Server is selected); Application gets `FluentValidation.AspNetCore`; API/WebApi gets `Microsoft.AspNetCore.OData`. 1-layer and MVC put the same packages on the single web project.
+Generated project files include baseline packages whose versions follow the selected target framework (`DotNetVersionCatalog`): Domain gets EF Core, EF Core Tools, Configuration, Configuration.Json and JWT Bearer (SQL Server provider only when SQL Server is selected); Application gets `FluentValidation.AspNetCore`; API/WebApi gets `Microsoft.AspNetCore.OpenApi`, `Swashbuckle.AspNetCore.SwaggerUI` and `Microsoft.AspNetCore.OData`. 1-layer puts the same API packages on the single web project; MVC omits OpenAPI/Swagger UI.
 
 **Not implemented (out of MVP scope):** test project generation, additional databases/frameworks, non-interactive/CI mode.
 
@@ -97,11 +100,12 @@ The CLI MUST ask the user for the following configuration:
 1. Solution name (required, no hardcoded default).
 2. Output directory.
 3. .NET version (default .NET 10).
-4. Architecture (DDD, Clean Architecture, 1-layer or MVC).
-5. Database (PostgreSQL or SQL Server for MVP).
-6. Docker (default Yes).
-7. Generate Unit Tests and Integration Tests (default No).
-8. Optional packages:
+4. Application (Web API, MVC or Console).
+5. Architecture. Web API offers DDD, Clean Architecture and 1-layer. MVC offers the 1-layer Razor layout. Console is listed, then the CLI asks again because console generation is not implemented.
+6. Database (PostgreSQL or SQL Server for MVP).
+7. Docker (default Yes).
+8. Generate Unit Tests and Integration Tests (default No).
+9. Optional packages:
    - Serilog
    - FluentValidation
    - AutoMapper

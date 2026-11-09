@@ -1,3 +1,4 @@
+using MonorepoDotnet.Core.Distribution;
 using MonorepoDotnet.Core.Models;
 using Spectre.Console;
 
@@ -9,7 +10,15 @@ public static class ConsoleRenderer
     public static void RenderBanner()
     {
         AnsiConsole.Write(new FigletText("monorepo-dotnet").Color(Color.Cyan1));
-        AnsiConsole.MarkupLine("[grey]ASP.NET Core solution generator — DDD, Clean, 1-Layer and MVC — PostgreSQL, EF Core, Docker[/]");
+        AnsiConsole.MarkupLine("[grey]ASP.NET Core solution generator — Web API, MVC, Console — DDD, Clean, 1-Layer — PostgreSQL, EF Core, Docker[/]");
+        AnsiConsole.WriteLine();
+    }
+
+    public static void RenderUpdateNotice(string currentVersion, string latestVersion)
+    {
+        AnsiConsole.MarkupLine(
+            $"[yellow]Update available:[/] {Markup.Escape(currentVersion)} → {Markup.Escape(latestVersion)}");
+        AnsiConsole.MarkupLine($"[grey]{Markup.Escape(ToolPackage.UpdateCommand)}[/]");
         AnsiConsole.WriteLine();
     }
 
@@ -25,7 +34,8 @@ public static class ConsoleRenderer
         table.AddRow("Solution name", Markup.Escape(options.SolutionName));
         table.AddRow("Output directory", Markup.Escape(options.OutputDirectory));
         table.AddRow("Target framework", Markup.Escape(options.DotNetVersion));
-        table.AddRow("Architecture", Markup.Escape(options.Architecture.ToDisplayName()));
+        table.AddRow("Application", Markup.Escape(options.ProjectKind.ToDisplayName()));
+        table.AddRow("Architecture", Markup.Escape(options.Architecture.ToDisplayName(options.ProjectKind)));
         table.AddRow("Database", Markup.Escape(options.Database.ToDisplayName()));
         table.AddRow("Docker", options.IncludeDocker ? "Yes" : "No");
         table.AddRow("Optional packages", FormatPackages(options.Packages));
@@ -131,7 +141,7 @@ public static class ConsoleRenderer
         AnsiConsole.MarkupLine("[grey]Usage:[/] monorepo [bold][[--help]][/]");
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine("The CLI is interactive: it asks for the solution name, output directory,");
-        AnsiConsole.MarkupLine("target framework, architecture (DDD, Clean, 1-Layer, MVC), database, Docker and optional packages.");
+        AnsiConsole.MarkupLine("target framework, application (Web API, MVC or Console), architecture, database, Docker and optional packages.");
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine("[grey]Requirements:[/] .NET SDK 8, 9 or 10 (matching the target you pick), Docker (optional), dotnet-ef (optional).");
         AnsiConsole.MarkupLine("[grey]Missing SDK:[/] the CLI prints Microsoft install commands and can run them for you.");

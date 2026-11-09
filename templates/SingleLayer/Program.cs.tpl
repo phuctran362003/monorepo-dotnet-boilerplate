@@ -11,7 +11,8 @@ using {{Namespace}}.Products;
 {{#if FluentValidation}}using FluentValidation;
 {{/if}}{{#if AutoMapper}}using AutoMapper;
 {{/if}}{{#if MediatR}}using MediatR;
-{{/if}}
+{{/if}}using Swashbuckle.AspNetCore.SwaggerUI;
+
 var builder = WebApplication.CreateBuilder(args);
 
 {{#if Serilog}}builder.Host.UseSerilog((context, services, configuration) => configuration
@@ -91,6 +92,10 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/openapi/v1.json", "{{SolutionName}} v1");
+    });
 }
 
 app.UseAuthorization();

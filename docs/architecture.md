@@ -71,7 +71,7 @@ same cleanup and exits with code `130`.
 
 - `SolutionName` — single source of truth for project names, namespaces, Docker
   names and the database name.
-- `OutputDirectory`, `DotNetVersion`, `Architecture`, `Database`,
+- `OutputDirectory`, `DotNetVersion`, `ProjectKind`, `Architecture`, `Database`,
   `IncludeDocker`, `Packages` (flags enum), `BuildAfterGeneration`.
 - Derived: `RootDirectory`, `DockerName`, project names, `MainProject`,
   `HasPackage(...)`.
@@ -191,7 +191,8 @@ Domain has no project references. Its project file still references EF Core,
 EF Core Tools, `Microsoft.Extensions.Configuration`,
 `Microsoft.Extensions.Configuration.Json` and JWT Bearer, plus the SQL Server
 provider when that database is selected. Application references
-`FluentValidation.AspNetCore`. API/WebApi references `Microsoft.AspNetCore.OData`.
+`FluentValidation.AspNetCore`. API/WebApi references `Microsoft.AspNetCore.OpenApi`,
+`Swashbuckle.AspNetCore.SwaggerUI` and `Microsoft.AspNetCore.OData`.
 Versions come from `DotNetVersionCatalog` for the selected target framework.
 
 Domain contains entities, value objects, enums, domain events, domain

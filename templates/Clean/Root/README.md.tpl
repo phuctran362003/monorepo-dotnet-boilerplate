@@ -93,3 +93,4 @@ Migrations are not applied automatically.
 | POST | `/api/products` | Create a product |
 
 OpenAPI document (Development only): `/openapi/v1.json`.
+Swagger UI (Development only): `/swagger`.

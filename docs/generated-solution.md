@@ -100,7 +100,7 @@ with your own bounded contexts.
 | Folder | Contents |
 | --- | --- |
 | `Program.cs` | Minimal hosting model, middleware, controllers, `/health`, optional Serilog and optional migration application. |
-| Project file | `Microsoft.AspNetCore.OData` in addition to OpenAPI. |
+| Project file | `Microsoft.AspNetCore.OpenApi`, `Swashbuckle.AspNetCore.SwaggerUI`, and `Microsoft.AspNetCore.OData`. |
 | `Controllers/` | `ProductsController`. |
 | `Middleware/` | `ExceptionHandlingMiddleware` mapping domain exceptions to problem details. |
 | `Extensions/` | `AddApiServices()`. |
@@ -116,7 +116,7 @@ with your own bounded contexts.
 | GET | `/api/products/{id}` | Get one product. |
 | POST | `/api/products` | Create a product. |
 
-OpenAPI is mapped in Development at `/openapi/v1.json`.
+OpenAPI is mapped in Development at `/openapi/v1.json`. Swagger UI is served at `/swagger` from that document (`Swashbuckle.AspNetCore.SwaggerUI`). `launchSettings.json` opens `/swagger` in the browser.
 
 ## Optional packages
 

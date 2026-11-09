@@ -31,9 +31,20 @@ You can also pack it as a .NET global tool; the command name is the same.
 All configuration is collected interactively; there are no flags that skip the
 prompts in this version.
 
+`monorepo` and `monorepo --version` ask nuget.org whether a newer stable
+`monorepo-dotnet` package exists. When one does, the terminal prints:
+
+```text
+Update available: 0.1.4 → 0.1.5
+dotnet tool update --global monorepo-dotnet
+```
+
+The check waits at most 3 seconds. If nuget.org cannot be reached, the CLI
+continues and prints nothing. It does not update itself.
+
 ## Interactive workflow
 
-1. **Banner** — tool name and purpose.
+1. **Banner** — tool name and purpose, then an update notice when nuget.org has a newer stable package.
 2. **Solution configuration** prompts (see below).
 3. **Environment checks** — a table reports .NET SDK (must be able to build the
    selected target framework), Docker CLI, Docker Engine, output directory
@@ -61,25 +72,31 @@ generated directory is removed when the generator created it.
 | Solution name | none | Required. Must match `^[A-Za-z][A-Za-z0-9_]*$`, at most 64 characters. |
 | Output directory | current directory | Absolute or relative; validated and normalized with `Path.GetFullPath`. |
 | .NET version | `net10.0` | `net10.0`, `net9.0` or `net8.0`. |
-| Architecture | DDD | DDD, Clean Architecture, 1-Layer (single project) or MVC. |
+| Application | Web API | Web API, MVC or Console. Console returns to this prompt because console generation is not implemented. |
+| Architecture | DDD | Depends on the application. Web API: DDD, Clean Architecture, 1-Layer. MVC: 1-Layer Razor. |
 | Database | PostgreSQL | PostgreSQL or SQL Server, both EF Core Code First. |
 | Docker files | Yes | Generates `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.env.example` and `.env`. |
 | Optional packages | none | Multi-select: Serilog, FluentValidation, AutoMapper, Redis, MediatR. |
 
 Unit and integration test generation is **not offered**, because the MVP does
-not generate test projects. The CLI only shows options that are implemented.
+not generate test projects. Console is listed so the application step is
+complete; choosing it returns to that step until console generation exists.
 
-### Architectures
+### Application and architecture
 
-| Choice | Layout |
-| --- | --- |
-| DDD | `Domain`, `Application`, `Infrastructure`, `API` with aggregate roots, value objects and domain events. |
-| Clean Architecture | `Domain`, `Application`, `Infrastructure`, `WebApi`; a simpler entity model with the same inward dependency rule. |
-| 1-Layer | Single `{SolutionName}` web project with `Controllers`, `Models`, `Data`, `Products` and `Services`. |
-| MVC | Single `{SolutionName}.Web` project with `Controllers`, `Views`, `ViewModels`, `Services` and `Data`. |
+The application prompt runs first. The architecture prompt then lists only the layouts for that application.
 
-All four options support PostgreSQL, SQL Server, Docker and the optional
-packages. The sample `Product` slice is generated in every layout.
+| Application | Architecture | Layout |
+| --- | --- | --- |
+| Web API | DDD | `Domain`, `Application`, `Infrastructure`, `API` with aggregate roots, value objects and domain events. |
+| Web API | Clean Architecture | `Domain`, `Application`, `Infrastructure`, `WebApi`; a simpler entity model with the same inward dependency rule. |
+| Web API | 1-Layer | Single `{SolutionName}` web project with `Controllers`, `Models`, `Data`, `Products` and `Services`. |
+| MVC | 1-Layer | Single `{SolutionName}.Web` project with `Controllers`, `Views`, `ViewModels`, `Services` and `Data`. |
+| Console | DDD, Clean Architecture, 1-Layer | Shown in the prompt. Generation is not implemented, so the CLI asks for the application again. |
+
+Web API and MVC support PostgreSQL, SQL Server, Docker and the optional
+packages. The sample `Product` slice is generated in every layout those
+applications produce.
 
 ### Databases
 

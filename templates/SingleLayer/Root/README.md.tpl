@@ -80,3 +80,4 @@ dotnet ef database update \
 | POST | `/api/products` | Create a product |
 
 OpenAPI document (Development only): `/openapi/v1.json`.
+Swagger UI (Development only): `/swagger`.

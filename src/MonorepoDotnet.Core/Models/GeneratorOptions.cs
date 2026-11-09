@@ -14,6 +14,8 @@ public sealed record GeneratorOptions
 
     public string DotNetVersion { get; init; } = DefaultDotNetVersion;
 
+    public ProjectKind ProjectKind { get; init; } = ProjectKind.WebApi;
+
     public ArchitectureType Architecture { get; init; } = ArchitectureType.Ddd;
 
     public DatabaseProvider Database { get; init; } = DatabaseProvider.PostgreSql;

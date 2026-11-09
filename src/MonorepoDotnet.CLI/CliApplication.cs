@@ -14,6 +14,7 @@ public sealed class CliApplication
     private readonly IEnvironmentValidator _environmentValidator;
     private readonly IDotNetSdkInstaller _dotNetSdkInstaller;
     private readonly ISolutionGenerator _solutionGenerator;
+    private readonly IToolUpdateChecker _toolUpdateChecker;
     private readonly ConfigurationPrompt _configurationPrompt;
     private readonly ILogger<CliApplication> _logger;
 
@@ -21,12 +22,14 @@ public sealed class CliApplication
         IEnvironmentValidator environmentValidator,
         IDotNetSdkInstaller dotNetSdkInstaller,
         ISolutionGenerator solutionGenerator,
+        IToolUpdateChecker toolUpdateChecker,
         ConfigurationPrompt configurationPrompt,
         ILogger<CliApplication> logger)
     {
         _environmentValidator = environmentValidator;
         _dotNetSdkInstaller = dotNetSdkInstaller;
         _solutionGenerator = solutionGenerator;
+        _toolUpdateChecker = toolUpdateChecker;
         _configurationPrompt = configurationPrompt;
         _logger = logger;
     }
@@ -41,8 +44,9 @@ public sealed class CliApplication
 
         if (args.Any(argument => argument is "--version" or "-v"))
         {
-            var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "0.0.0";
+            var version = CurrentVersion();
             AnsiConsole.MarkupLine($"monorepo-dotnet [green]{version}[/]");
+            await NotifyIfUpdateAvailableAsync(version, cancellationToken);
             return 0;
         }
 
@@ -56,6 +60,7 @@ public sealed class CliApplication
         }
 
         ConsoleRenderer.RenderBanner();
+        await NotifyIfUpdateAvailableAsync(CurrentVersion(), cancellationToken);
 
         var options = _configurationPrompt.Prompt();
         AnsiConsole.WriteLine();
@@ -215,4 +220,18 @@ public sealed class CliApplication
 
         return installResult ?? new ProcessResult(1, string.Empty, "SDK install produced no result.");
     }
+
+    private async Task NotifyIfUpdateAvailableAsync(string currentVersion, CancellationToken cancellationToken)
+    {
+        var latest = await _toolUpdateChecker.FindNewerVersionAsync(currentVersion, cancellationToken);
+        if (latest is null)
+        {
+            return;
+        }
+
+        ConsoleRenderer.RenderUpdateNotice(currentVersion, latest);
+    }
+
+    private static string CurrentVersion() =>
+        Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "0.0.0";
 }
