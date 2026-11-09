@@ -1,6 +1,13 @@
 # monorepo-dotnet
 
-Interactive CLI that generates an ASP.NET Core solution, restores packages, builds it, and creates the initial EF Core migration.
+`monorepo-dotnet` is an interactive CLI for quickly creating ASP.NET Core
+solutions with a clean architecture, database, Docker, and commonly used
+packages already configured.
+
+Instead of creating projects, wiring references, installing packages, writing a
+`DbContext`, and configuring Docker by hand, answer a few prompts. The tool
+generates the solution, restores its packages, builds it, and creates the first
+EF Core migration.
 
 ## Quick start
 
@@ -9,7 +16,8 @@ dotnet tool install --global monorepo-dotnet
 monorepo
 ```
 
-The CLI asks for the solution name, output directory, .NET version, architecture, database, Docker, and optional packages. It never overwrites a non-empty folder. When generation finishes:
+Choose the solution name, .NET version, architecture, database, and packages.
+When generation finishes:
 
 ```bash
 cd <output-directory>/<SolutionName>
@@ -23,24 +31,49 @@ Run from source:
 dotnet run --project src/MonorepoDotnet.CLI
 ```
 
-Needs a .NET SDK for the target you pick (8, 9, or 10). If it is missing, the CLI prints the Microsoft install command and can run it. Docker is only required to start the generated containers. `dotnet-ef` is optional; without it the CLI still generates the solution and tells you how to add the migration later.
+You need a .NET 8, 9, or 10 SDK matching the selected target. If it is missing,
+the CLI shows the official Microsoft installation command and can run it for
+you. Docker is only required to run the containers. `dotnet-ef` is optional;
+without it, the solution is still generated and the CLI explains how to create
+the migration later.
 
-## Features
+## What problem does it solve?
 
-- **.NET 8, 9, or 10.** Package versions and Docker image tags follow the selected target framework.
-- **Four architectures.** DDD, Clean Architecture, a single-project API, or MVC. DDD and Clean use Domain, Application, Infrastructure, and API/WebApi. The other two are one web project.
-- **EF Core Code First.** PostgreSQL or SQL Server, `ApplicationDbContext`, design-time factory, and an `InitialCreate` migration. Passwords stay in `.env`, not in `appsettings.json`.
-- **Docker.** Optional multi-stage Dockerfile and Compose with the selected database, a volume, a healthcheck, and a service-name host (`postgres` or `sqlserver`).
-- **Baseline packages.** Domain gets EF Core, EF Core Tools, Configuration, and JWT Bearer (SQL Server provider only when SQL Server is selected). Application gets FluentValidation.AspNetCore. API gets OData. 1-layer and MVC put the same packages on the single project.
-- **Optional packages, fully wired.** Serilog, FluentValidation, AutoMapper, Redis, and MediatR.
-- **Sample Product API.** List, get, and create, so the generated app runs end to end. MVC also includes Razor views.
-- **Safe prompts.** Names, paths, and SDKs are checked before any file is written. A failed run deletes the directory it created.
+- Cuts down the boilerplate setup time for a new ASP.NET Core project.
+- Prevents mismatched project references, package versions, and layer
+  configuration.
+- Gives the whole team a consistent solution structure.
+- Creates a ready-to-use local Docker environment without hand-written Compose
+  configuration.
+- Includes a working sample for testing the complete API-to-database flow.
 
-## Docs
+## Key features
 
-| Document | Contents |
+- **.NET 8, 9, and 10** — package versions and Docker images automatically
+  match the selected target framework.
+- **Four architectures** — DDD, Clean Architecture, 1-Layer API, and MVC.
+- **EF Core Code First** — PostgreSQL or SQL Server with
+  `ApplicationDbContext`, a design-time factory, and an `InitialCreate`
+  migration.
+- **Optional Docker setup** — generates a multi-stage Dockerfile and Docker
+  Compose configuration with a database, volume, health check, and environment
+  variables.
+- **Essential packages by layer** — EF Core, EF Tools, Configuration, JWT
+  Bearer, OData, and FluentValidation.AspNetCore with compatible versions.
+- **Fully wired optional packages** — Serilog, FluentValidation, AutoMapper,
+  Redis, and MediatR, not just package references in the `.csproj`.
+- **Sample Product API** — list, get, and create endpoints for an end-to-end
+  smoke test; the MVC template also includes Razor Views.
+- **Safe generation** — validates the solution name, output path, and SDK before
+  writing files, and never overwrites a non-empty directory.
+- **Secret protection** — database passwords stay in `.env`, not
+  `appsettings.json`.
+
+## Documentation
+
+| Document | Description |
 | --- | --- |
-| [docs/usage.md](docs/usage.md) | Prompts, validation, exit codes, troubleshooting. |
-| [docs/generated-solution.md](docs/generated-solution.md) | What each architecture produces. |
-| [docs/architecture.md](docs/architecture.md) | How the generator is structured. |
-| [docs/distribution.md](docs/distribution.md) | Single-file publish and the NuGet global tool. |
+| [Usage guide](docs/usage.md) | Prompts, validation, exit codes, and troubleshooting. |
+| [Generated solution](docs/generated-solution.md) | Structure and contents of each architecture. |
+| [Generator architecture](docs/architecture.md) | How the tool is organized and works. |
+| [Distribution](docs/distribution.md) | Single-file publishing and the NuGet global tool. |
