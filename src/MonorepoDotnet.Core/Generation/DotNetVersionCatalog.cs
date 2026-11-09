@@ -15,7 +15,10 @@ public sealed record DotNetVersionProfile(
     string AspNetCoreOpenApi,
     string MicrosoftExtensions,
     string CachingRedis,
-    string SerilogAspNetCore)
+    string SerilogAspNetCore,
+    string JwtBearer,
+    string AspNetCoreOData,
+    string FluentValidationAspNetCore)
 {
     public string WingetPackageId => $"Microsoft.DotNet.SDK.{Major}";
 
@@ -37,7 +40,10 @@ public static class DotNetVersionCatalog
         AspNetCoreOpenApi: "10.0.14",
         MicrosoftExtensions: "10.0.14",
         CachingRedis: "10.0.14",
-        SerilogAspNetCore: "10.0.0");
+        SerilogAspNetCore: "10.0.0",
+        JwtBearer: "10.0.14",
+        AspNetCoreOData: "9.5.0",
+        FluentValidationAspNetCore: "11.3.1");
 
     public static readonly DotNetVersionProfile Net9 = new(
         TargetFramework: "net9.0",
@@ -50,7 +56,10 @@ public static class DotNetVersionCatalog
         AspNetCoreOpenApi: "9.0.22",
         MicrosoftExtensions: "9.0.22",
         CachingRedis: "9.0.22",
-        SerilogAspNetCore: "9.0.0");
+        SerilogAspNetCore: "9.0.0",
+        JwtBearer: "9.0.22",
+        AspNetCoreOData: "9.5.0",
+        FluentValidationAspNetCore: "11.3.1");
 
     public static readonly DotNetVersionProfile Net8 = new(
         TargetFramework: "net8.0",
@@ -63,7 +72,10 @@ public static class DotNetVersionCatalog
         AspNetCoreOpenApi: "8.0.33",
         MicrosoftExtensions: "8.0.0",
         CachingRedis: "8.0.22",
-        SerilogAspNetCore: "8.0.3");
+        SerilogAspNetCore: "8.0.3",
+        JwtBearer: "8.0.33",
+        AspNetCoreOData: "9.5.0",
+        FluentValidationAspNetCore: "11.3.1");
 
     /// <summary>Prompt order: newest first so .NET 10 remains the default.</summary>
     public static IReadOnlyList<DotNetVersionProfile> All { get; } = [Net10, Net9, Net8];

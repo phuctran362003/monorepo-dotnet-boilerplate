@@ -100,6 +100,16 @@ Application ──► Domain
 Domain ──► none
 ```
 
+Domain still has no project references. Generation writes these package
+references into the project files (versions follow the selected .NET version):
+
+| Project | Packages |
+| --- | --- |
+| Domain | EF Core, EF Core Tools, Configuration, Configuration.Json, JWT Bearer. SQL Server provider only when SQL Server is selected. |
+| Application (service) | `FluentValidation.AspNetCore` |
+| API / WebApi | `Microsoft.AspNetCore.OData` |
+| 1-layer and MVC | All of the above, in the single web project. |
+
 The 1-layer and MVC layouts deliberately use a single project. They are a
 pragmatic starting point for small applications and can be split later.
 
@@ -191,8 +201,8 @@ monorepo
 See [docs/distribution.md](docs/distribution.md) for other platforms, skipping
 the PATH install, and publishing the global tool to NuGet.org. To bump the
 version, pack, push to nuget.org and refresh the local global tool in one step,
-double-click `publish-nuget.bat` (needs `NUGET_API_KEY` or a `.nuget-api-key`
-file).
+double-click `publish-nuget.bat`. The first run asks you to paste a NuGet API
+key and saves it as the Windows user environment variable `NUGET_API_KEY`.
 
 ## Notes
 

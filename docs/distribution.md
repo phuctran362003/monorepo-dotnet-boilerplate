@@ -157,7 +157,8 @@ Publishing only applies to that GitHub Actions job.
 
 ### One-click from the repo root
 
-Double-click `publish-nuget.bat` (or run it from a terminal). It reads
+Double-click `publish-nuget.bat` (or run it from a terminal). The bat launches
+`scripts/publish-nuget.ps1`. It reads
 `<Version>` in `src/MonorepoDotnet.CLI/MonorepoDotnet.CLI.csproj`, bumps the
 **patch** (`0.1.0` → `0.1.1`), writes it back, packs the global tool, pushes to
 nuget.org, and updates the local `monorepo` tool from the new nupkg.
@@ -168,9 +169,12 @@ publish-nuget.bat minor
 publish-nuget.bat major
 ```
 
-The API key is **not** in the repo. Provide it as `NUGET_API_KEY`, or save it
-once in `.nuget-api-key` at the repo root (gitignored). Create a key at
-https://www.nuget.org/account/apikeys.
+The API key is **not** in the repo. The script reads the Windows user
+environment variable `NUGET_API_KEY`. If it is missing, it asks you to paste
+the key once and stores it with
+`[Environment]::SetEnvironmentVariable(..., 'User')` so later runs do not
+prompt. It does not open nuget.org. The version is only bumped after a key is
+available.
 
 ### Publish from your machine (classic API key)
 

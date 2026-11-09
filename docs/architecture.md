@@ -187,6 +187,13 @@ Application ──► Domain
 Domain ──► (nothing)
 ```
 
+Domain has no project references. Its project file still references EF Core,
+EF Core Tools, `Microsoft.Extensions.Configuration`,
+`Microsoft.Extensions.Configuration.Json` and JWT Bearer, plus the SQL Server
+provider when that database is selected. Application references
+`FluentValidation.AspNetCore`. API/WebApi references `Microsoft.AspNetCore.OData`.
+Versions come from `DotNetVersionCatalog` for the selected target framework.
+
 Domain contains entities, value objects, enums, domain events, domain
 exceptions and repository interfaces. Application contains use cases, DTOs,
 interfaces and its own DI registration. Infrastructure contains the

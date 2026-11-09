@@ -24,6 +24,8 @@ This file is the source of truth for product goals, architecture, phases, coding
 
 **Verified end to end:** generation for all four architectures with both databases, with all five optional packages and with none (plus Docker on/off), `dotnet build` for every combination, `dotnet ef migrations add` for every combination (DDD/Clean `Persistence/Migrations`, 1-layer/MVC `Data/Migrations`; SQL Server migrations use SQL Server column types), `docker compose config` for both providers, and path validation for invalid characters, reserved names, missing drives, file collisions and non-empty targets. DDD Docker smoke tests (`docker compose up`, `/health`, `GET/POST /api/products`, Redis) remain supported; the original DDD end-to-end scenarios were run against PostgreSQL.
 
+Generated project files include baseline packages whose versions follow the selected target framework (`DotNetVersionCatalog`): Domain gets EF Core, EF Core Tools, Configuration, Configuration.Json and JWT Bearer (SQL Server provider only when SQL Server is selected); Application gets `FluentValidation.AspNetCore`; API/WebApi gets `Microsoft.AspNetCore.OData`. 1-layer and MVC put the same packages on the single web project.
+
 **Not implemented (out of MVP scope):** test project generation, additional databases/frameworks, non-interactive/CI mode.
 
 ## 1. Technology Stack

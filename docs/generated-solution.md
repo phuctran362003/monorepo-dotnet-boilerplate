@@ -51,7 +51,7 @@ Domain ──► (no project references)
 
 ## Domain
 
-Pure C#; no framework references.
+No project references. The project file pins EF Core, EF Core Tools, configuration and JWT Bearer. `Microsoft.EntityFrameworkCore.SqlServer` is added only when SQL Server is selected. Package versions follow the chosen target framework.
 
 | Folder | Contents |
 | --- | --- |
@@ -66,6 +66,7 @@ Pure C#; no framework references.
 ## Application
 
 Use cases, DTOs and application-level abstractions. References Domain only.
+The project file always includes `FluentValidation.AspNetCore`.
 
 | Folder | Contents |
 | --- | --- |
@@ -99,6 +100,7 @@ with your own bounded contexts.
 | Folder | Contents |
 | --- | --- |
 | `Program.cs` | Minimal hosting model, middleware, controllers, `/health`, optional Serilog and optional migration application. |
+| Project file | `Microsoft.AspNetCore.OData` in addition to OpenAPI. |
 | `Controllers/` | `ProductsController`. |
 | `Middleware/` | `ExceptionHandlingMiddleware` mapping domain exceptions to problem details. |
 | `Extensions/` | `AddApiServices()`. |
