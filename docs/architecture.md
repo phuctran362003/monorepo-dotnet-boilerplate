@@ -187,12 +187,11 @@ Application ──► Domain
 Domain ──► (nothing)
 ```
 
-Domain has no project references. Its project file still references EF Core,
-EF Core Tools, `Microsoft.Extensions.Configuration`,
-`Microsoft.Extensions.Configuration.Json` and JWT Bearer, plus the SQL Server
-provider when that database is selected. Application references
-`FluentValidation.AspNetCore`. API/WebApi references `Microsoft.AspNetCore.OpenApi`,
-`Swashbuckle.AspNetCore.SwaggerUI` and `Microsoft.AspNetCore.OData`.
+Domain has no project references. Its project file holds every package
+reference for the solution, including EF Core, the selected database provider,
+configuration, JWT Bearer, FluentValidation.AspNetCore, optional packages, and
+the host packages. Application, Infrastructure and the host project reference
+other projects only.
 Versions come from `DotNetVersionCatalog` for the selected target framework.
 
 Domain contains entities, value objects, enums, domain events, domain

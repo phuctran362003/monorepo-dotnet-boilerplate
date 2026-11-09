@@ -59,15 +59,20 @@ public static class DddTemplateManifest
         new("DDD/Infrastructure/Caching/RedisCacheService.cs.tpl", "src/{{InfrastructureProject}}/Caching/RedisCacheService.cs", OptionalPackage.Redis),
 
         // API
-        new("DDD/API/Project.csproj.tpl", "src/{{ApiProject}}/{{ApiProject}}.csproj"),
-        new("DDD/API/Program.cs.tpl", "src/{{ApiProject}}/Program.cs"),
-        new("DDD/API/Controllers/ProductsController.cs.tpl", "src/{{ApiProject}}/Controllers/ProductsController.cs"),
-        new("DDD/API/Middleware/ExceptionHandlingMiddleware.cs.tpl", "src/{{ApiProject}}/Middleware/ExceptionHandlingMiddleware.cs"),
-        new("DDD/API/Extensions/ServiceCollectionExtensions.cs.tpl", "src/{{ApiProject}}/Extensions/ServiceCollectionExtensions.cs"),
-        new("DDD/API/Filters/ValidationFilter.cs.tpl", "src/{{ApiProject}}/Filters/ValidationFilter.cs", OptionalPackage.FluentValidation),
+        new("DDD/API/Project.csproj.tpl", "src/{{ApiProject}}/{{ApiProject}}.csproj", Host: ProjectKind.WebApi),
+        new("DDD/API/Program.cs.tpl", "src/{{ApiProject}}/Program.cs", Host: ProjectKind.WebApi),
+        new("DDD/API/Controllers/ProductsController.cs.tpl", "src/{{ApiProject}}/Controllers/ProductsController.cs", Host: ProjectKind.WebApi),
+        new("DDD/API/Middleware/ExceptionHandlingMiddleware.cs.tpl", "src/{{ApiProject}}/Middleware/ExceptionHandlingMiddleware.cs", Host: ProjectKind.WebApi),
+        new("DDD/API/Extensions/ServiceCollectionExtensions.cs.tpl", "src/{{ApiProject}}/Extensions/ServiceCollectionExtensions.cs", Host: ProjectKind.WebApi),
+        new("DDD/API/Filters/ValidationFilter.cs.tpl", "src/{{ApiProject}}/Filters/ValidationFilter.cs", OptionalPackage.FluentValidation, Host: ProjectKind.WebApi),
         new("DDD/API/appsettings.json.tpl", "src/{{ApiProject}}/appsettings.json"),
         new("DDD/API/appsettings.Development.json.tpl", "src/{{ApiProject}}/appsettings.Development.json"),
-        new("DDD/API/Properties/launchSettings.json.tpl", "src/{{ApiProject}}/Properties/launchSettings.json"),
+        new("DDD/API/Properties/launchSettings.json.tpl", "src/{{ApiProject}}/Properties/launchSettings.json", Host: ProjectKind.WebApi),
+
+        // Console host
+        new("Console/Host/Project.csproj.tpl", "src/{{ApiProject}}/{{ApiProject}}.csproj", Host: ProjectKind.Console),
+        new("Console/Host/Program.cs.tpl", "src/{{ApiProject}}/Program.cs", Host: ProjectKind.Console),
+        new("Console/Host/Properties/launchSettings.json.tpl", "src/{{ApiProject}}/Properties/launchSettings.json", Host: ProjectKind.Console),
 
         // Docker
         new("DDD/Docker/Dockerfile.tpl", "Dockerfile", RequiresDocker: true),
@@ -77,7 +82,5 @@ public static class DddTemplateManifest
     ];
 
     public static IEnumerable<TemplateFile> ForOptions(GeneratorOptions options) =>
-        All.Where(file =>
-            (file.RequiredPackage == OptionalPackage.None || options.HasPackage(file.RequiredPackage)) &&
-            (!file.RequiresDocker || options.IncludeDocker));
+        All.Where(file => file.Matches(options));
 }

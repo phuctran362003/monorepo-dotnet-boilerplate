@@ -12,6 +12,8 @@ Architecture, 1-layer and MVC are summarized below.
 | Clean | `WebApi`, `Application`, `Domain`, `Infrastructure` | Simple entity model; dependencies point inward. |
 | 1-Layer | `{SolutionName}` | One web project: `Controllers`, `Products`, `Models`, `Data`. |
 | MVC | `{SolutionName}.Web` | One web project with `Controllers`, `Views`, `ViewModels`, `Services`, `Data`. |
+| Console + DDD or Clean | `{SolutionName}.Console` plus the same inner projects | Console entry point. No controllers, OpenAPI or Swagger UI. |
+| Console + 1-Layer | `{SolutionName}` | One console project with `Products`, `Models` and `Data`. |
 
 All variants share the root files, database/EF Core setup, Docker templates
 and optional-package wiring. The sections below use the DDD names
@@ -51,7 +53,7 @@ Domain ──► (no project references)
 
 ## Domain
 
-No project references. The project file pins EF Core, EF Core Tools, configuration and JWT Bearer. `Microsoft.EntityFrameworkCore.SqlServer` is added only when SQL Server is selected. Package versions follow the chosen target framework.
+No project references. Every `PackageReference` for the solution lives in this project file: EF Core, the database provider, configuration, JWT Bearer, FluentValidation.AspNetCore, and the host packages (OpenAPI, Swagger UI and OData for a web host, `Microsoft.Extensions.Hosting` for a console host). Optional packages are added here too. Package versions follow the chosen target framework.
 
 | Folder | Contents |
 | --- | --- |
@@ -66,7 +68,7 @@ No project references. The project file pins EF Core, EF Core Tools, configurati
 ## Application
 
 Use cases, DTOs and application-level abstractions. References Domain only.
-The project file always includes `FluentValidation.AspNetCore`.
+The project file references Domain only. Its packages come from that reference.
 
 | Folder | Contents |
 | --- | --- |
@@ -100,7 +102,7 @@ with your own bounded contexts.
 | Folder | Contents |
 | --- | --- |
 | `Program.cs` | Minimal hosting model, middleware, controllers, `/health`, optional Serilog and optional migration application. |
-| Project file | `Microsoft.AspNetCore.OpenApi`, `Swashbuckle.AspNetCore.SwaggerUI`, and `Microsoft.AspNetCore.OData`. |
+| Project file | Project references only. OpenAPI, Swagger UI and OData are referenced by Domain. |
 | `Controllers/` | `ProductsController`. |
 | `Middleware/` | `ExceptionHandlingMiddleware` mapping domain exceptions to problem details. |
 | `Extensions/` | `AddApiServices()`. |

@@ -23,11 +23,11 @@ public class ProjectKindTests
     }
 
     [Fact]
-    public void For_Console_OffersArchitecturesThatAreNotImplemented()
+    public void For_Console_OffersDddCleanAndSingleLayer()
     {
         var architectures = ArchitectureTypeExtensions.For(ProjectKind.Console).ToArray();
 
         Assert.Equal([ArchitectureType.Ddd, ArchitectureType.Clean, ArchitectureType.SingleLayer], architectures);
-        Assert.All(architectures, architecture => Assert.False(ProjectKind.Console.IsImplemented(architecture)));
+        Assert.All(architectures, architecture => Assert.True(ProjectKind.Console.IsImplemented(architecture)));
     }
 }

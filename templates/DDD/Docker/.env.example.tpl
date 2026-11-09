@@ -8,5 +8,5 @@ POSTGRES_PORT={{DatabasePort}}
 MSSQL_USER={{DatabaseUser}}
 MSSQL_SA_PASSWORD=Change-me-Strong0Password
 MSSQL_PORT={{DatabasePort}}
-{{/if}}API_HTTP_PORT={{ApiHttpPort}}
-APPLY_MIGRATIONS=false
+{{/if}}{{#if !Console}}API_HTTP_PORT={{ApiHttpPort}}
+{{/if}}APPLY_MIGRATIONS=false

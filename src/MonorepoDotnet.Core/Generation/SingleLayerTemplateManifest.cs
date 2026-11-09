@@ -14,8 +14,11 @@ public static class SingleLayerTemplateManifest
         new("SingleLayer/Root/README.md.tpl", "README.md"),
 
         // Project
-        new("SingleLayer/Project.csproj.tpl", "src/{{SingleLayerProject}}/{{SingleLayerProject}}.csproj"),
-        new("SingleLayer/Program.cs.tpl", "src/{{SingleLayerProject}}/Program.cs"),
+        new("SingleLayer/Project.csproj.tpl", "src/{{SingleLayerProject}}/{{SingleLayerProject}}.csproj", Host: ProjectKind.WebApi),
+        new("SingleLayer/Program.cs.tpl", "src/{{SingleLayerProject}}/Program.cs", Host: ProjectKind.WebApi),
+        new("Console/SingleLayer/Project.csproj.tpl", "src/{{SingleLayerProject}}/{{SingleLayerProject}}.csproj", Host: ProjectKind.Console),
+        new("Console/SingleLayer/Program.cs.tpl", "src/{{SingleLayerProject}}/Program.cs", Host: ProjectKind.Console),
+        new("Console/Host/Properties/launchSettings.json.tpl", "src/{{SingleLayerProject}}/Properties/launchSettings.json", Host: ProjectKind.Console),
         new("SingleLayer/Common/IUnitOfWork.cs.tpl", "src/{{SingleLayerProject}}/Common/IUnitOfWork.cs"),
         new("SingleLayer/Exceptions/DomainException.cs.tpl", "src/{{SingleLayerProject}}/Exceptions/DomainException.cs"),
 
@@ -47,12 +50,12 @@ public static class SingleLayerTemplateManifest
         new("SingleLayer/Caching/ICacheService.cs.tpl", "src/{{SingleLayerProject}}/Caching/ICacheService.cs", OptionalPackage.Redis),
 
         // Web layer
-        new("SingleLayer/Controllers/ProductsController.cs.tpl", "src/{{SingleLayerProject}}/Controllers/ProductsController.cs"),
-        new("SingleLayer/Middleware/ExceptionHandlingMiddleware.cs.tpl", "src/{{SingleLayerProject}}/Middleware/ExceptionHandlingMiddleware.cs"),
-        new("SingleLayer/Filters/ValidationFilter.cs.tpl", "src/{{SingleLayerProject}}/Filters/ValidationFilter.cs", OptionalPackage.FluentValidation),
+        new("SingleLayer/Controllers/ProductsController.cs.tpl", "src/{{SingleLayerProject}}/Controllers/ProductsController.cs", Host: ProjectKind.WebApi),
+        new("SingleLayer/Middleware/ExceptionHandlingMiddleware.cs.tpl", "src/{{SingleLayerProject}}/Middleware/ExceptionHandlingMiddleware.cs", Host: ProjectKind.WebApi),
+        new("SingleLayer/Filters/ValidationFilter.cs.tpl", "src/{{SingleLayerProject}}/Filters/ValidationFilter.cs", OptionalPackage.FluentValidation, Host: ProjectKind.WebApi),
         new("SingleLayer/appsettings.json.tpl", "src/{{SingleLayerProject}}/appsettings.json"),
         new("SingleLayer/appsettings.Development.json.tpl", "src/{{SingleLayerProject}}/appsettings.Development.json"),
-        new("SingleLayer/Properties/launchSettings.json.tpl", "src/{{SingleLayerProject}}/Properties/launchSettings.json"),
+        new("SingleLayer/Properties/launchSettings.json.tpl", "src/{{SingleLayerProject}}/Properties/launchSettings.json", Host: ProjectKind.WebApi),
 
         // Docker (shared)
         new("DDD/Docker/Dockerfile.tpl", "Dockerfile", RequiresDocker: true),
@@ -62,7 +65,5 @@ public static class SingleLayerTemplateManifest
     ];
 
     public static IEnumerable<TemplateFile> ForOptions(GeneratorOptions options) =>
-        All.Where(file =>
-            (file.RequiredPackage == OptionalPackage.None || options.HasPackage(file.RequiredPackage)) &&
-            (!file.RequiresDocker || options.IncludeDocker));
+        All.Where(file => file.Matches(options));
 }

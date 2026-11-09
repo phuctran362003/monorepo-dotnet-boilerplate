@@ -87,4 +87,25 @@ public class SolutionLayoutTests
         Assert.Equal("TestApp.Web", layout.MigrationProject.Name);
         Assert.Single(layout.Projects);
     }
+
+    [Theory]
+    [InlineData(ArchitectureType.Ddd, "TestApp.Console")]
+    [InlineData(ArchitectureType.Clean, "TestApp.Console")]
+    [InlineData(ArchitectureType.SingleLayer, "TestApp")]
+    public void Create_ConsoleHost_UsesConsoleEntryProject(ArchitectureType architecture, string mainProject)
+    {
+        var options = new GeneratorOptions
+        {
+            SolutionName = "TestApp",
+            OutputDirectory = Path.GetTempPath(),
+            ProjectKind = ProjectKind.Console,
+            Architecture = architecture,
+            Database = DatabaseProvider.PostgreSql
+        };
+
+        var layout = SolutionLayouts.Create(options);
+
+        Assert.Equal(mainProject, layout.MainProject.Name);
+        Assert.Equal(mainProject, layout.MigrationStartupProject?.Name);
+    }
 }

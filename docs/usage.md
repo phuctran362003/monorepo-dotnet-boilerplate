@@ -72,15 +72,14 @@ generated directory is removed when the generator created it.
 | Solution name | none | Required. Must match `^[A-Za-z][A-Za-z0-9_]*$`, at most 64 characters. |
 | Output directory | current directory | Absolute or relative; validated and normalized with `Path.GetFullPath`. |
 | .NET version | `net10.0` | `net10.0`, `net9.0` or `net8.0`. |
-| Application | Web API | Web API, MVC or Console. Console returns to this prompt because console generation is not implemented. |
-| Architecture | DDD | Depends on the application. Web API: DDD, Clean Architecture, 1-Layer. MVC: 1-Layer Razor. |
+| Application | Web API | Web API, MVC or Console. |
+| Architecture | DDD | Web API and Console: DDD, Clean Architecture, 1-Layer. MVC: 1-Layer Razor. |
 | Database | PostgreSQL | PostgreSQL or SQL Server, both EF Core Code First. |
 | Docker files | Yes | Generates `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.env.example` and `.env`. |
 | Optional packages | none | Multi-select: Serilog, FluentValidation, AutoMapper, Redis, MediatR. |
 
 Unit and integration test generation is **not offered**, because the MVP does
-not generate test projects. Console is listed so the application step is
-complete; choosing it returns to that step until console generation exists.
+not generate test projects. The CLI only shows options that are implemented.
 
 ### Application and architecture
 
@@ -92,11 +91,13 @@ The application prompt runs first. The architecture prompt then lists only the l
 | Web API | Clean Architecture | `Domain`, `Application`, `Infrastructure`, `WebApi`; a simpler entity model with the same inward dependency rule. |
 | Web API | 1-Layer | Single `{SolutionName}` web project with `Controllers`, `Models`, `Data`, `Products` and `Services`. |
 | MVC | 1-Layer | Single `{SolutionName}.Web` project with `Controllers`, `Views`, `ViewModels`, `Services` and `Data`. |
-| Console | DDD, Clean Architecture, 1-Layer | Shown in the prompt. Generation is not implemented, so the CLI asks for the application again. |
+| Console | DDD | `Domain`, `Application`, `Infrastructure`, `Console`. The console project is the entry point. |
+| Console | Clean Architecture | Same projects as DDD, with the Clean domain model. The host project is `{SolutionName}.Console`. |
+| Console | 1-Layer | Single `{SolutionName}` console project with `Products`, `Models` and `Data`. |
 
-Web API and MVC support PostgreSQL, SQL Server, Docker and the optional
-packages. The sample `Product` slice is generated in every layout those
-applications produce.
+Web API, Console and MVC support PostgreSQL, SQL Server, Docker and the optional
+packages. The sample `Product` slice is generated in every layout. A console
+run creates one sample product and prints the list.
 
 ### Databases
 

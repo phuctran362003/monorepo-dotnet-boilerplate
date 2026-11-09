@@ -208,10 +208,14 @@ public sealed class SolutionGenerator : ISolutionGenerator
                 $"POSTGRES_PORT={options.DatabasePort}{newLine}"
         };
 
+        var httpPort = options.ProjectKind == ProjectKind.Console
+            ? string.Empty
+            : "API_HTTP_PORT=8080" + newLine;
+
         var content =
             $"# Local Docker Compose environment. Never commit this file.{newLine}" +
             databaseVariables +
-            "API_HTTP_PORT=8080" + newLine +
+            httpPort +
             "APPLY_MIGRATIONS=false" + newLine;
 
         await _fileSystem
@@ -369,6 +373,8 @@ public sealed class SolutionGenerator : ISolutionGenerator
             ["ApplicationProject"] = options.ApplicationProject,
             ["InfrastructureProject"] = options.InfrastructureProject,
             ["ApiProject"] = options.MainProject,
+            ["ConsoleProject"] = options.ConsoleProject,
+            ["ComposeService"] = options.ProjectKind == ProjectKind.Console ? "app" : "api",
             ["WebApiProject"] = options.WebApiProject,
             ["SingleLayerProject"] = options.SingleLayerProject,
             ["MvcProject"] = options.MvcProject,
@@ -428,6 +434,7 @@ public sealed class SolutionGenerator : ISolutionGenerator
             ["Clean"] = options.Architecture == ArchitectureType.Clean,
             ["SingleLayer"] = options.Architecture == ArchitectureType.SingleLayer,
             ["Mvc"] = options.Architecture == ArchitectureType.Mvc,
+            ["Console"] = options.ProjectKind == ProjectKind.Console,
             ["Postgres"] = options.Database == DatabaseProvider.PostgreSql,
             ["SqlServer"] = options.Database == DatabaseProvider.SqlServer
         };

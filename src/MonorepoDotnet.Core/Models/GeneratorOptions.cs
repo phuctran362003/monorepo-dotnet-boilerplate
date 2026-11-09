@@ -45,6 +45,7 @@ public sealed record GeneratorOptions
     public bool HasPackage(OptionalPackage package) => (Packages & package) == package;
 
     public string ApiProject => $"{SolutionName}.API";
+    public string ConsoleProject => $"{SolutionName}.Console";
     public string WebApiProject => $"{SolutionName}.WebApi";
     public string ApplicationProject => $"{SolutionName}.Application";
     public string DomainProject => $"{SolutionName}.Domain";
@@ -55,8 +56,8 @@ public sealed record GeneratorOptions
     /// <summary>Project that hosts the application entry point for the selected architecture.</summary>
     public string MainProject => Architecture switch
     {
-        ArchitectureType.Ddd => ApiProject,
-        ArchitectureType.Clean => WebApiProject,
+        ArchitectureType.Ddd => ProjectKind == ProjectKind.Console ? ConsoleProject : ApiProject,
+        ArchitectureType.Clean => ProjectKind == ProjectKind.Console ? ConsoleProject : WebApiProject,
         ArchitectureType.SingleLayer => SingleLayerProject,
         ArchitectureType.Mvc => MvcProject,
         _ => throw new ArgumentOutOfRangeException(nameof(Architecture), Architecture, "Unsupported architecture.")

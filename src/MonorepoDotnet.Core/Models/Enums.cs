@@ -59,6 +59,7 @@ public static class ProjectKindExtensions
         {
             ProjectKind.WebApi => architecture is ArchitectureType.Ddd or ArchitectureType.Clean or ArchitectureType.SingleLayer,
             ProjectKind.Mvc => architecture is ArchitectureType.Mvc,
+            ProjectKind.Console => architecture is ArchitectureType.Ddd or ArchitectureType.Clean or ArchitectureType.SingleLayer,
             _ => false
         };
 }

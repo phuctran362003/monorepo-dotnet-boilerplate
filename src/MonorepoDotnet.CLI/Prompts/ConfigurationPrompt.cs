@@ -43,32 +43,17 @@ public sealed class ConfigurationPrompt
                 .Title("Target [green].NET version[/]:")
                 .AddChoices(DotNetVersionCatalog.All.Select(profile => profile.ChoiceLabel)));
 
-        ProjectKind projectKind;
-        ArchitectureType architecture;
+        var projectKind = AnsiConsole.Prompt(
+            new SelectionPrompt<ProjectKind>()
+                .Title("[green]Application[/]:")
+                .AddChoices(ProjectKindExtensions.All())
+                .UseConverter(candidate => candidate.ToDisplayName()));
 
-        while (true)
-        {
-            projectKind = AnsiConsole.Prompt(
-                new SelectionPrompt<ProjectKind>()
-                    .Title("[green]Application[/]:")
-                    .AddChoices(ProjectKindExtensions.All())
-                    .UseConverter(candidate => candidate.ToDisplayName()));
-
-            architecture = AnsiConsole.Prompt(
-                new SelectionPrompt<ArchitectureType>()
-                    .Title("[green]Architecture[/]:")
-                    .AddChoices(ArchitectureTypeExtensions.For(projectKind))
-                    .UseConverter(candidate => candidate.ToDisplayName(projectKind)));
-
-            if (projectKind.IsImplemented(architecture))
-            {
-                break;
-            }
-
-            AnsiConsole.MarkupLine(
-                "[yellow]Console applications are not implemented yet. Choose Web API or MVC.[/]");
-            AnsiConsole.WriteLine();
-        }
+        var architecture = AnsiConsole.Prompt(
+            new SelectionPrompt<ArchitectureType>()
+                .Title("[green]Architecture[/]:")
+                .AddChoices(ArchitectureTypeExtensions.For(projectKind))
+                .UseConverter(candidate => candidate.ToDisplayName(projectKind)));
 
         var database = AnsiConsole.Prompt(
             new SelectionPrompt<DatabaseProvider>()

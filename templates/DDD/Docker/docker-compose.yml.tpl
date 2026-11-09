@@ -1,21 +1,23 @@
 name: {{DockerName}}
 
 services:
-  api:
+  {{ComposeService}}:
     build:
       context: .
       dockerfile: Dockerfile
-    image: {{DockerName}}-api:latest
+    image: {{DockerName}}-{{ComposeService}}:latest
     environment:
-      ASPNETCORE_ENVIRONMENT: Development
+{{#if Console}}      DOTNET_ENVIRONMENT: Development
+{{/if}}{{#if !Console}}      ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
-{{#if Postgres}}      ConnectionStrings__Default: "Host={{DatabaseService}};Port={{DatabasePort}};Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+{{/if}}{{#if Postgres}}      ConnectionStrings__Default: "Host={{DatabaseService}};Port={{DatabasePort}};Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
 {{/if}}{{#if SqlServer}}      ConnectionStrings__Default: "Server={{DatabaseService}},{{DatabasePort}};Database=${MSSQL_DB};User Id=${MSSQL_USER};TrustServerCertificate=True;Encrypt=False"
       Database__Password: ${MSSQL_SA_PASSWORD}
 {{/if}}      Database__ApplyMigrations: ${APPLY_MIGRATIONS:-false}
 {{#if Redis}}      ConnectionStrings__Redis: "redis:6379"
-{{/if}}    ports:
+{{/if}}{{#if !Console}}    ports:
       - "${API_HTTP_PORT:-{{ApiHttpPort}}}:8080"
+{{/if}}
     depends_on:
 {{#if Postgres}}      postgres:
         condition: service_healthy

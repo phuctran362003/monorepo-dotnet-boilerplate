@@ -69,7 +69,5 @@ public static class MvcTemplateManifest
     ];
 
     public static IEnumerable<TemplateFile> ForOptions(GeneratorOptions options) =>
-        All.Where(file =>
-            (file.RequiredPackage == OptionalPackage.None || options.HasPackage(file.RequiredPackage)) &&
-            (!file.RequiresDocker || options.IncludeDocker));
+        All.Where(file => file.Matches(options));
 }

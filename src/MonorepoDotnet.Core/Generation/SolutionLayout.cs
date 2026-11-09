@@ -49,14 +49,14 @@ public static class SolutionLayouts
         var domain = Project(options.DomainProject);
         var application = Project(options.ApplicationProject);
         var infrastructure = Project(options.InfrastructureProject);
-        var api = Project(options.ApiProject);
+        var host = Project(options.MainProject);
 
         return new SolutionLayout(
             ArchitectureType.Ddd,
-            [domain, application, infrastructure, api],
-            api,
+            [domain, application, infrastructure, host],
+            host,
             infrastructure,
-            api,
+            host,
             "Persistence/Migrations");
     }
 
@@ -65,14 +65,14 @@ public static class SolutionLayouts
         var domain = Project(options.DomainProject);
         var application = Project(options.ApplicationProject);
         var infrastructure = Project(options.InfrastructureProject);
-        var webApi = Project(options.WebApiProject);
+        var host = Project(options.MainProject);
 
         return new SolutionLayout(
             ArchitectureType.Clean,
-            [domain, application, infrastructure, webApi],
-            webApi,
+            [domain, application, infrastructure, host],
+            host,
             infrastructure,
-            webApi,
+            host,
             "Persistence/Migrations");
     }
 

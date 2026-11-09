@@ -37,6 +37,18 @@ Run from source:
 dotnet run --project src/MonorepoDotnet.CLI
 ```
 
+Publish a self-contained Windows executable to `artifacts/win-x64`:
+
+```powershell
+dotnet publish src/MonorepoDotnet.CLI `
+  -c Release `
+  -r win-x64 `
+  --self-contained true `
+  -p:PublishSingleFile=true `
+  -p:IncludeNativeLibrariesForSelfExtract=true `
+  -o artifacts/win-x64
+```
+
 You need a .NET 8, 9, or 10 SDK matching the selected target. If it is missing,
 the CLI shows the official Microsoft installation command and can run it for
 you. Docker is only required to run the containers. `dotnet-ef` is optional;
@@ -64,9 +76,10 @@ the migration later.
 - **Optional Docker setup** — generates a multi-stage Dockerfile and Docker
   Compose configuration with a database, volume, health check, and environment
   variables.
-- **Essential packages by layer** — EF Core, EF Tools, Configuration, JWT
-  Bearer, OpenAPI, Swagger UI, OData, and FluentValidation.AspNetCore with
-  compatible versions.
+- **Packages on Domain** — DDD and Clean Architecture put every package
+  reference on the Domain project: EF Core, EF Tools, Configuration, JWT
+  Bearer, OpenAPI, Swagger UI, OData, and FluentValidation.AspNetCore.
+  1-layer and MVC keep those packages on the single project.
 - **Fully wired optional packages** — Serilog, FluentValidation, AutoMapper,
   Redis, and MediatR, not just package references in the `.csproj`.
 - **Sample Product API** — list, get, and create endpoints for an end-to-end
