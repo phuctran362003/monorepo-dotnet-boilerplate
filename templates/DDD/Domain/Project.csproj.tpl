@@ -17,8 +17,8 @@
 {{/if}}    <PackageReference Include="Microsoft.Extensions.Configuration" Version="{{ExtensionsVersion}}" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="{{ExtensionsVersion}}" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="{{ExtensionsVersion}}" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="{{ExtensionsVersion}}" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="{{ExtensionsVersion}}" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="{{ExtensionsAbstractionsVersion}}" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="{{ExtensionsAbstractionsVersion}}" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="{{JwtBearerVersion}}" />
     <PackageReference Include="FluentValidation.AspNetCore" Version="{{FluentValidationAspNetCoreVersion}}" />
 {{#if !Console}}    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="{{OpenApiVersion}}" />

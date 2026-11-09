@@ -72,7 +72,7 @@ public sealed class SolutionGenerator : ISolutionGenerator
             await CreateSolutionAsync(rootDirectory, options, layout, cancellationToken).ConfigureAwait(false);
 
             progress?.Report(new GenerationProgress(5, TotalSteps, "Restoring NuGet packages"));
-            await RunDotnetAsync(rootDirectory, ["restore", SolutionFileName(options)], cancellationToken)
+            await RestoreWithFallbackAsync(rootDirectory, SolutionFileName(options), warnings, cancellationToken)
                 .ConfigureAwait(false);
 
             progress?.Report(new GenerationProgress(6, TotalSteps, "Building generated solution"));
@@ -270,6 +270,63 @@ public sealed class SolutionGenerator : ISolutionGenerator
         }
     }
 
+    /// <summary>
+    /// Restores the solution. If NuGet reports a package downgrade (NU1605) as an
+    /// error, the restore is retried with that check demoted to a warning so the
+    /// solution is still generated. The downgrade is surfaced as a warning in the
+    /// generation result so the template versions can be aligned later.
+    /// </summary>
+    private async Task RestoreWithFallbackAsync(
+        string rootDirectory,
+        string solutionFile,
+        List<string> warnings,
+        CancellationToken cancellationToken)
+    {
+        var arguments = new[] { "restore", solutionFile };
+        var result = await _processRunner
+            .RunAsync("dotnet", arguments, rootDirectory, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (result.Succeeded)
+        {
+            return;
+        }
+
+        if (!HasDowngradeError(result))
+        {
+            throw CommandFailure(arguments, result);
+        }
+
+        var fallbackArguments = new[] { "restore", solutionFile, "-p:WarningsAsErrors=" };
+        var fallback = await _processRunner
+            .RunAsync("dotnet", fallbackArguments, rootDirectory, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (!fallback.Succeeded)
+        {
+            throw CommandFailure(fallbackArguments, fallback);
+        }
+
+        warnings.Add(
+            "NuGet detected a package downgrade (NU1605). The solution was generated with NuGet's resolved " +
+            "versions; align the package versions in DotNetVersionCatalog to remove this warning.");
+    }
+
+    private static bool HasDowngradeError(ProcessResult result) =>
+        result.StandardOutput.Contains("NU1605", StringComparison.Ordinal) ||
+        result.StandardError.Contains("NU1605", StringComparison.Ordinal);
+
+    private static GenerationException CommandFailure(string[] arguments, ProcessResult result)
+    {
+        var detail = string.IsNullOrWhiteSpace(result.StandardError)
+            ? result.StandardOutput
+            : result.StandardError;
+
+        return new GenerationException(
+            $"Command 'dotnet {string.Join(' ', arguments)}' failed with exit code {result.ExitCode}.{Environment.NewLine}" +
+            TrimForDisplay(detail));
+    }
+
     private void CleanupOnFailure(string rootDirectory, bool createdRoot)
     {
         if (!createdRoot)
@@ -358,6 +415,7 @@ public sealed class SolutionGenerator : ISolutionGenerator
             ["OpenApiVersion"] = packages.AspNetCoreOpenApi,
             ["SwaggerUiVersion"] = PackageVersions.SwashbuckleSwaggerUi,
             ["ExtensionsVersion"] = packages.MicrosoftExtensions,
+            ["ExtensionsAbstractionsVersion"] = packages.ExtensionsAbstractions,
             ["JwtBearerVersion"] = packages.JwtBearer,
             ["ODataVersion"] = packages.AspNetCoreOData,
             ["FluentValidationAspNetCoreVersion"] = packages.FluentValidationAspNetCore,

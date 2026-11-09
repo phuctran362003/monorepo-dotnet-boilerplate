@@ -18,8 +18,17 @@ public sealed record DotNetVersionProfile(
     string SerilogAspNetCore,
     string JwtBearer,
     string AspNetCoreOData,
-    string FluentValidationAspNetCore)
+    string FluentValidationAspNetCore,
+    string? AbstractionsOverride = null)
 {
+    /// <summary>
+    /// Version for Microsoft.Extensions.DependencyInjection/Logging.Abstractions.
+    /// Defaults to <see cref="MicrosoftExtensions"/> unless a framework needs a
+    /// newer abstractions package to satisfy transitive EF Core dependencies
+    /// (otherwise NuGet reports NU1605 package downgrade errors).
+    /// </summary>
+    public string ExtensionsAbstractions => AbstractionsOverride ?? MicrosoftExtensions;
+
     public string WingetPackageId => $"Microsoft.DotNet.SDK.{Major}";
 
     public string DownloadUrl => $"https://dotnet.microsoft.com/download/dotnet/{Channel}";
@@ -75,7 +84,9 @@ public static class DotNetVersionCatalog
         SerilogAspNetCore: "8.0.3",
         JwtBearer: "8.0.33",
         AspNetCoreOData: "9.5.0",
-        FluentValidationAspNetCore: "11.3.1");
+        FluentValidationAspNetCore: "11.3.1",
+        // EF Core 8.0.33 -> Caching.Memory 8.0.1 needs DI/Logging abstractions >= 8.0.2.
+        AbstractionsOverride: "8.0.2");
 
     /// <summary>Prompt order: newest first so .NET 10 remains the default.</summary>
     public static IReadOnlyList<DotNetVersionProfile> All { get; } = [Net10, Net9, Net8];
