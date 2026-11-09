@@ -35,9 +35,13 @@ prompts in this version.
 
 1. **Banner** — tool name and purpose.
 2. **Solution configuration** prompts (see below).
-3. **Environment checks** — a table reports .NET SDK, Docker CLI, Docker Engine,
-   output directory permissions, the complete solution path and solution name
-   validation. Errors abort the run; warnings are informational.
+3. **Environment checks** — a table reports .NET SDK (must be able to build the
+   selected target framework), Docker CLI, Docker Engine, output directory
+   permissions, the complete solution path and solution name validation. Errors
+   abort the run; warnings are informational. If the SDK is missing, the CLI
+   prints the Microsoft install commands (WinGet / official `dotnet-install`
+   script from [dot.net](https://dot.net) / the download page) and offers to
+   run them.
 4. **Overwrite guard** — if `{OutputDirectory}/{SolutionName}` exists and is not
    empty, the prompt rejects it and the run stops. Existing files are never
    overwritten.
@@ -56,7 +60,7 @@ generated directory is removed when the generator created it.
 | --- | --- | --- |
 | Solution name | none | Required. Must match `^[A-Za-z][A-Za-z0-9_]*$`, at most 64 characters. |
 | Output directory | current directory | Absolute or relative; validated and normalized with `Path.GetFullPath`. |
-| .NET version | `net10.0` | Only `net10.0` is offered. |
+| .NET version | `net10.0` | `net10.0`, `net9.0` or `net8.0`. |
 | Architecture | DDD | DDD, Clean Architecture, 1-Layer (single project) or MVC. |
 | Database | PostgreSQL | PostgreSQL or SQL Server, both EF Core Code First. |
 | Docker files | Yes | Generates `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.env.example` and `.env`. |
@@ -149,7 +153,7 @@ first migration.
 
 | Requirement | When it is checked | Severity |
 | --- | --- | --- |
-| .NET SDK 10.0.100+ | Always | Error |
+| .NET SDK matching the selected TFM (8, 9 or 10) | Always | Error (with Microsoft install commands) |
 | Docker CLI | Only when Docker files are requested | Error |
 | Docker Engine reachable | Only when Docker files are requested | Warning |
 | Output directory writable | Always | Error |
@@ -180,9 +184,17 @@ containers needs it.
   written until the path is valid.
 - **Docker Engine warning** — start Docker Desktop (or the daemon). Docker file
   generation still succeeds.
+- **.NET SDK missing or too old** — run the printed Microsoft command
+  (`winget install Microsoft.DotNet.SDK.8` / `.9` / `.10`, or the official
+  script from https://dot.net/v1/dotnet-install.ps1), or accept the CLI prompt
+  to install it. Download pages:
+  https://dotnet.microsoft.com/download/dotnet/8.0,
+  https://dotnet.microsoft.com/download/dotnet/9.0,
+  https://dotnet.microsoft.com/download/dotnet/10.0.
 - **Migration warning** — install the tool with
-  `dotnet tool install --global dotnet-ef --version 10.0.14`, then run the
-  command printed in the generated `README.md`.
+  `dotnet tool install --global dotnet-ef --version <EfCoreVersion>`, then run the
+  command printed in the generated `README.md`. The version matches the selected
+  target framework.
 - **Build failure** — the full `dotnet build` output is included in the failure
   panel. The partially generated directory is removed so the next attempt starts
   clean.

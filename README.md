@@ -7,6 +7,23 @@ Framework Core, PostgreSQL or SQL Server, and Docker.
 The generator asks a few questions, then writes a complete solution, restores
 packages, builds it and creates the initial EF Core migration.
 
+## Quick start
+
+```bash
+dotnet tool install --global monorepo-dotnet
+monorepo
+```
+
+Requires a .NET SDK that can build the target you pick (8, 9 or 10). If none
+is installed, the CLI prints Microsoft install commands and can run them.
+Answer the prompts; when it finishes:
+
+```bash
+cd <output-directory>/<SolutionName>
+docker compose up --build
+curl http://localhost:8080/health
+```
+
 ```text
 ┌──────────────────────────────────────────────────────────────────────────────┐
 │  monorepo-dotnet                                                             │
@@ -23,7 +40,12 @@ packages, builds it and creates the initial EF Core migration.
 
 ## Requirements
 
-- .NET SDK 10.0.100 or later (`dotnet --list-sdks`)
+- .NET SDK 8, 9 or 10 matching the selected target (`dotnet --list-sdks`). If
+  the SDK is missing, install from Microsoft:
+  `winget install Microsoft.DotNet.SDK.8` (or `.9` / `.10`), or the official
+  script at https://dot.net/v1/dotnet-install.ps1
+  (`-Channel 8.0` / `9.0` / `10.0`). Downloads:
+  https://dotnet.microsoft.com/download/dotnet
 - PostgreSQL 14+ or SQL Server 2019+ — local install or Docker
 - Docker CLI + Docker Engine — optional, only needed to run the generated
   containers
@@ -31,28 +53,12 @@ packages, builds it and creates the initial EF Core migration.
   `dotnet tool install --global dotnet-ef --version 10.0.14` — optional, the
   generator only warns if it is missing
 
-## Quick start
-
-From source:
+## Run from source
 
 ```bash
-git clone <repository>
-cd monorepo-dotnet
+git clone https://github.com/phuctran362003/monorepo-dotnet-boilerplate.git
+cd monorepo-dotnet-boilerplate
 dotnet run --project src/MonorepoDotnet.CLI
-```
-
-After publishing once, run the installed command from any directory:
-
-```bash
-monorepo
-```
-
-Then answer the prompts. When it finishes:
-
-```bash
-cd <output-directory>/<SolutionName>
-docker compose up --build
-curl http://localhost:8080/health
 ```
 
 ## Databases
@@ -111,6 +117,8 @@ stylesheet.
   cancels cleanly.
 - **Four architectures** — DDD, Clean Architecture, 1-layer and MVC, all using
   the same PostgreSQL/EF Core, Docker and optional-package wiring.
+- **.NET 8, 9 or 10** — the target-framework prompt selects TFM, EF Core / OpenAPI
+  package versions and Docker SDK/runtime image tags.
 - **PostgreSQL or SQL Server** — the database prompt selects the EF Core
   provider, connection string, Docker service and Compose environment.
 - **DDD structure** — aggregate root, value objects, domain events, repository
@@ -181,7 +189,10 @@ monorepo
 ```
 
 See [docs/distribution.md](docs/distribution.md) for other platforms, skipping
-the PATH install, and global tool packaging.
+the PATH install, and publishing the global tool to NuGet.org. To bump the
+version, pack, push to nuget.org and refresh the local global tool in one step,
+double-click `publish-nuget.bat` (needs `NUGET_API_KEY` or a `.nuget-api-key`
+file).
 
 ## Notes
 

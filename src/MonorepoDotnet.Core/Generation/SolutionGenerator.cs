@@ -94,9 +94,10 @@ public sealed class SolutionGenerator : ISolutionGenerator
 
             if (!migrationCreated)
             {
+                var efVersion = PackageVersions.For(options.DotNetVersion).EntityFrameworkCore;
                 warnings.Add(
                     "The initial EF Core migration was not generated. Install the EF tool " +
-                    "('dotnet tool install --global dotnet-ef --version 10.0.14') and run the migration command from the generated README.");
+                    $"('dotnet tool install --global dotnet-ef --version {efVersion}') and run the migration command from the generated README.");
             }
 
             return GenerationResult.Ok(rootDirectory, warnings);
@@ -138,7 +139,7 @@ public sealed class SolutionGenerator : ISolutionGenerator
             throw new GenerationException($"Database '{options.Database}' is not implemented yet.");
         }
 
-        if (options.DotNetVersion != GeneratorOptions.DefaultDotNetVersion)
+        if (!DotNetVersionCatalog.IsSupported(options.DotNetVersion))
         {
             throw new GenerationException($"Target framework '{options.DotNetVersion}' is not implemented yet.");
         }
@@ -354,8 +355,11 @@ public sealed class SolutionGenerator : ISolutionGenerator
 
     private static IReadOnlyDictionary<string, string> BuildTemplateValues(
         GeneratorOptions options,
-        SolutionLayout layout) =>
-        new Dictionary<string, string>(StringComparer.Ordinal)
+        SolutionLayout layout)
+    {
+        var packages = PackageVersions.For(options.DotNetVersion);
+
+        return new Dictionary<string, string>(StringComparer.Ordinal)
         {
             ["SolutionName"] = options.SolutionName,
             ["Namespace"] = layout.MainProject.Name,
@@ -374,7 +378,7 @@ public sealed class SolutionGenerator : ISolutionGenerator
             ["MainProjectPath"] = layout.MainProject.RelativePath,
             ["DockerProjectCopies"] = BuildDockerProjectCopies(layout),
             ["TargetFramework"] = options.DotNetVersion,
-            ["DotNetImageTag"] = PackageVersions.DotNetImageTag,
+            ["DotNetImageTag"] = packages.ImageTag,
             ["DockerName"] = options.DockerName,
             ["DatabaseName"] = options.DockerName,
             ["Database"] = options.Database.ToShortName(),
@@ -383,11 +387,12 @@ public sealed class SolutionGenerator : ISolutionGenerator
             ["DatabasePort"] = options.DatabasePort.ToString(),
             ["ApiHttpPort"] = "8080",
             ["ApiHttpsPort"] = "8081",
-            ["EfCoreVersion"] = PackageVersions.EntityFrameworkCore,
-            ["NpgsqlVersion"] = PackageVersions.NpgsqlEntityFrameworkCore,
-            ["OpenApiVersion"] = PackageVersions.AspNetCoreOpenApi,
-            ["ExtensionsVersion"] = PackageVersions.MicrosoftExtensions,
-            ["SerilogVersion"] = PackageVersions.SerilogAspNetCore,
+            ["EfCoreVersion"] = packages.EntityFrameworkCore,
+            ["NpgsqlVersion"] = packages.NpgsqlEntityFrameworkCore,
+            ["OpenApiVersion"] = packages.AspNetCoreOpenApi,
+            ["ExtensionsVersion"] = packages.MicrosoftExtensions,
+            ["CachingRedisVersion"] = packages.CachingRedis,
+            ["SerilogVersion"] = packages.SerilogAspNetCore,
             ["FluentValidationVersion"] = PackageVersions.FluentValidation,
             ["AutoMapperVersion"] = PackageVersions.AutoMapper,
             ["MediatRVersion"] = PackageVersions.MediatR,
@@ -396,6 +401,7 @@ public sealed class SolutionGenerator : ISolutionGenerator
             ["SqlServerImage"] = PackageVersions.SqlServerImage,
             ["RedisImage"] = PackageVersions.RedisImage
         };
+    }
 
     private static string BuildDockerProjectCopies(SolutionLayout layout) =>
         string.Join(

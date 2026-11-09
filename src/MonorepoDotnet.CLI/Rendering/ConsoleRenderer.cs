@@ -92,6 +92,28 @@ public static class ConsoleRenderer
         }
     }
 
+    public static void RenderSdkInstallHelp(EnvironmentCheck sdkCheck)
+    {
+        AnsiConsole.MarkupLine("[yellow].NET SDK is missing or too old for the selected target framework.[/]");
+        AnsiConsole.MarkupLine("[grey]Install it from Microsoft:[/]");
+
+        if (!string.IsNullOrWhiteSpace(sdkCheck.RecoveryUrl))
+        {
+            AnsiConsole.MarkupLine($"  [link]{Markup.Escape(sdkCheck.RecoveryUrl)}[/]");
+        }
+
+        if (sdkCheck.RecoveryCommands is { Count: > 0 })
+        {
+            AnsiConsole.WriteLine();
+            foreach (var command in sdkCheck.RecoveryCommands)
+            {
+                AnsiConsole.MarkupLine($"  [grey]{Markup.Escape(command)}[/]");
+            }
+        }
+
+        AnsiConsole.WriteLine();
+    }
+
     public static void RenderFailure(GenerationResult result)
     {
         var panel = new Panel(new Markup($"[red]{Markup.Escape(result.Error ?? "Generation failed.")}[/]"))
@@ -111,7 +133,8 @@ public static class ConsoleRenderer
         AnsiConsole.MarkupLine("The CLI is interactive: it asks for the solution name, output directory,");
         AnsiConsole.MarkupLine("target framework, architecture (DDD, Clean, 1-Layer, MVC), database, Docker and optional packages.");
         AnsiConsole.WriteLine();
-        AnsiConsole.MarkupLine("[grey]Requirements:[/] .NET SDK 10.0.100+, Docker (optional), dotnet-ef (optional).");
+        AnsiConsole.MarkupLine("[grey]Requirements:[/] .NET SDK 8, 9 or 10 (matching the target you pick), Docker (optional), dotnet-ef (optional).");
+        AnsiConsole.MarkupLine("[grey]Missing SDK:[/] the CLI prints Microsoft install commands and can run them for you.");
     }
 
     private static string FormatPackages(OptionalPackage packages)

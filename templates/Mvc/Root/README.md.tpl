@@ -25,7 +25,7 @@ Framework Core, {{Database}}{{#if Docker}} and Docker{{/if}}.
 
 ## Prerequisites
 
-- .NET SDK {{TargetFramework}} (10.0 or later)
+- .NET SDK {{TargetFramework}}
 - {{Database}} (local install or Docker)
 - `dotnet-ef` tool: `dotnet tool install --global dotnet-ef --version {{EfCoreVersion}}`
 {{#if Docker}}- Docker Desktop / Docker Engine with Compose v2{{/if}}

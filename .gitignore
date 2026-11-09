@@ -5,6 +5,7 @@
 
 # dotenv files
 .env
+.nuget-api-key
 
 # User-specific files
 *.rsuser

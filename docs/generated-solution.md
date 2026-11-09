@@ -127,8 +127,11 @@ OpenAPI is mapped in Development at `/openapi/v1.json`.
 | MediatR | `MediatR`; command/query handlers and `AddMediatR` registration. |
 
 Pinned versions live in
+[`DotNetVersionCatalog.cs`](../src/MonorepoDotnet.Core/Generation/DotNetVersionCatalog.cs)
+(per target framework) and
 [`PackageVersions.cs`](../src/MonorepoDotnet.Core/Generation/PackageVersions.cs)
-and are substituted into every template, so all generated projects agree.
+(shared packages) and are substituted into every template, so all generated
+projects agree.
 
 ## PostgreSQL or SQL Server and EF Core
 
@@ -173,8 +176,9 @@ set `APPLY_MIGRATIONS=true` to opt in to `Database.MigrateAsync()` at startup.
 
 ## Docker
 
-`Dockerfile` is multi-stage: `sdk:10.0` restore/publish, then `aspnet:10.0`
-runtime as a non-root user (`USER $APP_UID`) listening on port 8080.
+`Dockerfile` is multi-stage: `sdk:{8|9|10}.0` restore/publish matching the
+selected target framework, then `aspnet:{8|9|10}.0` runtime as a non-root user
+(`USER $APP_UID`) listening on port 8080.
 
 `docker-compose.yml` defines:
 

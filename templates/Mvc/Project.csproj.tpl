@@ -19,7 +19,7 @@
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="{{FluentValidationVersion}}" />
 {{/if}}{{#if AutoMapper}}    <PackageReference Include="AutoMapper" Version="{{AutoMapperVersion}}" />
 {{/if}}{{#if MediatR}}    <PackageReference Include="MediatR" Version="{{MediatRVersion}}" />
-{{/if}}{{#if Redis}}    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="{{ExtensionsVersion}}" />
+{{/if}}{{#if Redis}}    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="{{CachingRedisVersion}}" />
     <PackageReference Include="StackExchange.Redis" Version="{{RedisVersion}}" />
 {{/if}}  </ItemGroup>
 

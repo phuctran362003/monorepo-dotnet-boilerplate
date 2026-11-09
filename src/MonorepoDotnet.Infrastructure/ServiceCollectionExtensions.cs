@@ -17,6 +17,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ITemplateProvider, TemplateProvider>();
         services.AddSingleton<ITemplateRenderer, TemplateRenderer>();
         services.AddSingleton<IEnvironmentValidator, EnvironmentValidator>();
+        services.AddSingleton<IDotNetSdkInstaller, DotNetSdkInstaller>();
 
         return services;
     }

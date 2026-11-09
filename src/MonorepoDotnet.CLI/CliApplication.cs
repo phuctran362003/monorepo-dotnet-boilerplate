@@ -12,17 +12,20 @@ namespace MonorepoDotnet.CLI;
 public sealed class CliApplication
 {
     private readonly IEnvironmentValidator _environmentValidator;
+    private readonly IDotNetSdkInstaller _dotNetSdkInstaller;
     private readonly ISolutionGenerator _solutionGenerator;
     private readonly ConfigurationPrompt _configurationPrompt;
     private readonly ILogger<CliApplication> _logger;
 
     public CliApplication(
         IEnvironmentValidator environmentValidator,
+        IDotNetSdkInstaller dotNetSdkInstaller,
         ISolutionGenerator solutionGenerator,
         ConfigurationPrompt configurationPrompt,
         ILogger<CliApplication> logger)
     {
         _environmentValidator = environmentValidator;
+        _dotNetSdkInstaller = dotNetSdkInstaller;
         _solutionGenerator = solutionGenerator;
         _configurationPrompt = configurationPrompt;
         _logger = logger;
@@ -57,16 +60,50 @@ public sealed class CliApplication
         var options = _configurationPrompt.Prompt();
         AnsiConsole.WriteLine();
 
-        var report = await _environmentValidator.ValidateAsync(
-            new EnvironmentValidationRequest
-            {
-                RequireDocker = options.IncludeDocker,
-                OutputDirectory = options.OutputDirectory,
-                SolutionName = options.SolutionName
-            },
-            cancellationToken);
+        var validationRequest = new EnvironmentValidationRequest
+        {
+            RequireDocker = options.IncludeDocker,
+            OutputDirectory = options.OutputDirectory,
+            SolutionName = options.SolutionName,
+            DotNetVersion = options.DotNetVersion
+        };
 
+        var report = await _environmentValidator.ValidateAsync(validationRequest, cancellationToken);
         ConsoleRenderer.RenderEnvironmentReport(report);
+
+        if (report.HasErrors)
+        {
+            var sdkCheck = report.Errors.FirstOrDefault(check => check.Name == ".NET SDK");
+            if (sdkCheck is not null)
+            {
+                ConsoleRenderer.RenderSdkInstallHelp(sdkCheck);
+
+                if (AnsiConsole.Confirm("Install the .NET SDK from Microsoft now?", defaultValue: true))
+                {
+                    var installResult = await InstallSdkAsync(options.DotNetVersion, cancellationToken);
+                    if (installResult.Succeeded)
+                    {
+                        AnsiConsole.MarkupLine("[green]SDK install finished. Re-checking the environment…[/]");
+                        AnsiConsole.WriteLine();
+                        report = await _environmentValidator.ValidateAsync(validationRequest, cancellationToken);
+                        ConsoleRenderer.RenderEnvironmentReport(report);
+                    }
+                    else
+                    {
+                        AnsiConsole.MarkupLine("[red]SDK install did not complete.[/]");
+                        var details = string.IsNullOrWhiteSpace(installResult.StandardError)
+                            ? installResult.StandardOutput
+                            : installResult.StandardError;
+                        if (!string.IsNullOrWhiteSpace(details))
+                        {
+                            AnsiConsole.MarkupLine($"[grey]{Markup.Escape(details.Trim())}[/]");
+                        }
+
+                        AnsiConsole.MarkupLine("[grey]Run one of the Microsoft commands above in an elevated terminal, then retry.[/]");
+                    }
+                }
+            }
+        }
 
         if (report.HasErrors)
         {
@@ -163,5 +200,19 @@ public sealed class CliApplication
         _logger.LogInformation("Solution generated at {RootDirectory}", result.RootDirectory);
         ConsoleRenderer.RenderSuccess(result, options);
         return 0;
+    }
+
+    private async Task<ProcessResult> InstallSdkAsync(string targetFramework, CancellationToken cancellationToken)
+    {
+        ProcessResult? installResult = null;
+
+        await AnsiConsole.Status()
+            .Spinner(Spinner.Known.Dots2)
+            .StartAsync("Installing .NET SDK from Microsoft…", async _ =>
+            {
+                installResult = await _dotNetSdkInstaller.InstallAsync(targetFramework, cancellationToken);
+            });
+
+        return installResult ?? new ProcessResult(1, string.Empty, "SDK install produced no result.");
     }
 }

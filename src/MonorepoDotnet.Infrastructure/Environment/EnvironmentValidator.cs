@@ -1,4 +1,5 @@
 using MonorepoDotnet.Core.Abstractions;
+using MonorepoDotnet.Core.Generation;
 using MonorepoDotnet.Core.Models;
 using MonorepoDotnet.Core.Validation;
 
@@ -7,7 +8,6 @@ namespace MonorepoDotnet.Infrastructure.Environment;
 /// <summary>Validates the .NET SDK, Docker, output directory and solution name.</summary>
 public sealed class EnvironmentValidator : IEnvironmentValidator
 {
-    private const int MinimumDotNetMajorVersion = 10;
     private readonly IProcessRunner _processRunner;
     private readonly IFileSystem _fileSystem;
 
@@ -23,7 +23,7 @@ public sealed class EnvironmentValidator : IEnvironmentValidator
     {
         var checks = new List<EnvironmentCheck>();
 
-        await ValidateDotNetSdkAsync(checks, cancellationToken).ConfigureAwait(false);
+        await ValidateDotNetSdkAsync(checks, request.DotNetVersion, cancellationToken).ConfigureAwait(false);
 
         if (request.RequireDocker)
         {
@@ -53,49 +53,77 @@ public sealed class EnvironmentValidator : IEnvironmentValidator
 
     private async Task ValidateDotNetSdkAsync(
         List<EnvironmentCheck> checks,
+        string? targetFramework,
         CancellationToken cancellationToken)
     {
+        var profile = ResolveProfile(targetFramework);
+        var installCommands = DotNetVersionCatalog.GetInstallCommands(profile);
+
         try
         {
+            DotNetExecutable.PrependInstallLocationsToPath();
+
             var result = await _processRunner
-                .RunAsync("dotnet", ["--version"], cancellationToken: cancellationToken)
+                .RunAsync(DotNetExecutable.Resolve(), ["--list-sdks"], cancellationToken: cancellationToken)
                 .ConfigureAwait(false);
 
             if (!result.Succeeded)
             {
-                checks.Add(new EnvironmentCheck(
-                    ".NET SDK",
-                    CheckSeverity.Error,
-                    $"Unable to read the .NET SDK version. {result.StandardError.Trim()}"));
+                checks.Add(MissingSdkCheck(
+                    profile,
+                    $"Unable to list installed .NET SDKs. {result.StandardError.Trim()}".Trim(),
+                    installCommands));
                 return;
             }
 
-            var rawVersion = result.StandardOutput.Trim().Split('\n')[0].Trim();
-            var numeric = rawVersion.Split('-')[0];
-            var major = Version.TryParse(numeric, out var version) ? version.Major : 0;
-
-            if (major < MinimumDotNetMajorVersion)
+            var installed = DotNetSdkVersionParser.ParseListSdks(result.StandardOutput);
+            if (!DotNetSdkVersionParser.HasCompatibleSdk(installed, profile.Major))
             {
-                checks.Add(new EnvironmentCheck(
-                    ".NET SDK",
-                    CheckSeverity.Error,
-                    $".NET SDK {MinimumDotNetMajorVersion}.0 or later is required. Found {rawVersion}."));
+                var found = installed.Count == 0
+                    ? "No .NET SDK is installed."
+                    : $"Found {string.Join(", ", installed.Select(sdk => sdk.ToString()))}.";
+
+                checks.Add(MissingSdkCheck(
+                    profile,
+                    $"{profile.DisplayName} SDK ({profile.TargetFramework}) is required to generate and build this solution. {found}",
+                    installCommands));
                 return;
             }
+
+            var best = installed
+                .Where(sdk => sdk.Major >= profile.Major)
+                .OrderByDescending(sdk => sdk)
+                .First();
 
             checks.Add(new EnvironmentCheck(
                 ".NET SDK",
                 CheckSeverity.Info,
-                $"Found .NET SDK {rawVersion}."));
+                $"Found .NET SDK {best} (compatible with {profile.TargetFramework})."));
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            checks.Add(new EnvironmentCheck(
-                ".NET SDK",
-                CheckSeverity.Error,
-                $".NET SDK is not available: {ex.Message}"));
+            checks.Add(MissingSdkCheck(
+                profile,
+                $".NET SDK is not available: {ex.Message}",
+                installCommands));
         }
     }
+
+    private static DotNetVersionProfile ResolveProfile(string? targetFramework) =>
+        !string.IsNullOrWhiteSpace(targetFramework) && DotNetVersionCatalog.IsSupported(targetFramework)
+            ? DotNetVersionCatalog.Get(targetFramework)
+            : DotNetVersionCatalog.Net10;
+
+    private static EnvironmentCheck MissingSdkCheck(
+        DotNetVersionProfile profile,
+        string message,
+        IReadOnlyList<string> installCommands) =>
+        new(
+            ".NET SDK",
+            CheckSeverity.Error,
+            message,
+            installCommands,
+            profile.DownloadUrl);
 
     private async Task ValidateDockerAsync(
         List<EnvironmentCheck> checks,

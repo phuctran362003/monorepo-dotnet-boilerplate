@@ -8,7 +8,12 @@ public enum CheckSeverity
 }
 
 /// <summary>Result of a single environment check.</summary>
-public sealed record EnvironmentCheck(string Name, CheckSeverity Severity, string Message);
+public sealed record EnvironmentCheck(
+    string Name,
+    CheckSeverity Severity,
+    string Message,
+    IReadOnlyList<string>? RecoveryCommands = null,
+    string? RecoveryUrl = null);
 
 /// <summary>Aggregated environment validation result.</summary>
 public sealed record EnvironmentReport(IReadOnlyList<EnvironmentCheck> Checks)
@@ -31,4 +36,7 @@ public sealed record EnvironmentValidationRequest
     public string? OutputDirectory { get; init; }
 
     public string? SolutionName { get; init; }
+
+    /// <summary>Target framework the generated solution will use, e.g. net8.0.</summary>
+    public string? DotNetVersion { get; init; }
 }

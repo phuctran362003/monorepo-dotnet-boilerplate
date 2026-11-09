@@ -33,7 +33,8 @@ MonorepoDotnet.CLI ──────────► Core
 | `IFileSystem` | `FileSystemService` | All file and directory access used during generation. |
 | `ITemplateProvider` | `TemplateProvider` | Reads templates from embedded resources (single-file friendly) with a development fallback to `templates/`. |
 | `ITemplateRenderer` | `TemplateRenderer` | `{{Token}}` replacement plus `{{#if Flag}}` blocks. Fails fast on unknown tokens and flags. |
-| `IEnvironmentValidator` | `EnvironmentValidator` | .NET SDK version, Docker CLI/Engine, output directory permissions, output path validity, solution path availability, solution name. |
+| `IEnvironmentValidator` | `EnvironmentValidator` | Compatible .NET SDK for the selected TFM, Docker CLI/Engine, output directory permissions, output path validity, solution path availability, solution name. |
+| `IDotNetSdkInstaller` | `DotNetSdkInstaller` | Installs the matching SDK from Microsoft (WinGet, else the official `dotnet-install` script). |
 | `ISolutionGenerator` | `SolutionGenerator` | Orchestrates the generation pipeline for every architecture. |
 
 ## Generation pipeline
@@ -102,9 +103,10 @@ keys without separate per-database file trees.
 `BuildTemplateValues` converts the options into the token dictionary
 (`{{SolutionName}}`, `{{TargetFramework}}`, `{{EfCoreVersion}}`, …) and
 `BuildTemplateFlags` into boolean flags (`{{#if Docker}}`, `{{#if Serilog}}`, …).
-Package and image versions live in `PackageVersions.cs` and are substituted into
-the generated `.csproj` files, so there is no `Directory.Packages.props` and
-upgrading is a one-file change.
+Framework-specific package and Docker image versions live in
+`DotNetVersionCatalog` (via `PackageVersions.For`); shared package versions live
+in `PackageVersions.cs`. They are substituted into the generated `.csproj`
+files, so there is no `Directory.Packages.props`.
 
 ## Templates
 
@@ -213,6 +215,9 @@ codes: `0` success, `1` failure/cancel, `130` Ctrl+C.
   captures stdout/stderr for error reporting.
 - Generated secrets never live in source: `.env` is generated, git-ignored, and
   referenced from Compose; `appsettings.json` keeps the password empty.
-- Generated solutions target `net10.0`; PostgreSQL and SQL Server are supported
-  and all four architectures are implemented. Other databases and frameworks
-  are rejected by `ValidateOptions`.
+- Generated solutions target `net10.0`, `net9.0` or `net8.0` (package and Docker
+  image versions come from `DotNetVersionCatalog`); PostgreSQL and SQL Server
+  are supported and all four architectures are implemented. Other databases and
+  frameworks are rejected by `ValidateOptions`.
+- When no compatible SDK is installed, the CLI shows Microsoft install commands
+  and can run WinGet or the official `dotnet-install` script.

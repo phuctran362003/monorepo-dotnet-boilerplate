@@ -6,14 +6,19 @@ This file is the source of truth for product goals, architecture, phases, coding
 
 ## Current status
 
-**Completed:** Phases 1–8.
+**Completed:** Phases 1–8, plus .NET 8/9 generation and Microsoft SDK install.
+
+- Generated solutions can target `net8.0`, `net9.0` or `net10.0` (default 10).
+- Missing or incompatible SDKs surface official Microsoft install commands
+  (WinGet `Microsoft.DotNet.SDK.{8|9|10}`, `dotnet-install` from https://dot.net,
+  download pages) and the CLI can run the install, then re-validate.
 
 - Phase 1 — Foundation: three-project solution, DI, `ProcessRunner`, file system, template provider/renderer, environment and name validation.
 - Phase 2 — DDD generator: 53 embedded templates, `DddTemplateManifest`, `DddSolutionGenerator`, solution/project creation, restore, build.
 - Phase 3 — PostgreSQL/EF Core: `ApplicationDbContext`, entity configuration, repository, design-time factory, migrations folder, Npgsql DI, automatic `InitialCreate`.
 - Phase 4 — Docker: multi-stage `Dockerfile`, Compose with PostgreSQL/Redis, healthchecks, volumes, network, `.env`/`.env.example`.
 - Phase 5 — Interactive CLI: Spectre.Console prompts, environment report, overwrite guard, summary + confirmation, progress, success/failure panels, exit codes.
-- Phase 6 — Distribution: single-file `win-x64` publish verified, embedded templates confirmed inside the published executable, global-tool packaging configured. Publish copies `monorepo.exe` to `%USERPROFILE%\.dotnet\tools` so the command `monorepo` is available from any terminal.
+- Phase 6 — Distribution: single-file `win-x64` publish verified, embedded templates confirmed inside the published executable, global-tool packaging configured (`PackageId` `monorepo-dotnet`, command `monorepo`, MIT, repo https://github.com/phuctran362003/monorepo-dotnet-boilerplate). Publish copies `monorepo.exe` to `%USERPROFILE%\.dotnet\tools`. NuGet.org Trusted Publishing workflow is `.github/workflows/publish.yml`. Steps are in `docs/distribution.md`.
 - Phase 7 — Architectures and path safety: DDD, Clean Architecture, 1-layer and MVC generators; `SolutionLayouts`; architecture-specific manifests/templates; `OutputPathValidator` for prompt, environment and generator checks.
 - Phase 8 — SQL Server: database prompt offers PostgreSQL and SQL Server; per-provider EF Core package, `UseNpgsql`/`UseSqlServer` wiring, connection strings, Compose service (`postgres`/`sqlserver`), `.env` keys and SQL Server password handling via `Database:Password`.
 
@@ -32,7 +37,7 @@ This file is the source of truth for product goals, architecture, phases, coding
 - Template-based code generation.
 
 **Generated projects:**
-- ASP.NET Core 10 Web API (or MVC).
+- ASP.NET Core 8, 9 or 10 Web API (or MVC).
 - Domain-Driven Design (DDD), Clean Architecture, 1-layer or MVC layout.
 - Entity Framework Core.
 - PostgreSQL (Npgsql) or SQL Server (Microsoft.EntityFrameworkCore.SqlServer).

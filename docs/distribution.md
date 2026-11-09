@@ -89,35 +89,150 @@ rebuilding.
 
 ## .NET global tool
 
-The CLI project already declares:
+Source: [phuctran362003/monorepo-dotnet-boilerplate](https://github.com/phuctran362003/monorepo-dotnet-boilerplate).
 
-```xml
-<PackAsTool>true</PackAsTool>
-<ToolCommandName>monorepo</ToolCommandName>
-<PackageId>MonorepoDotnet.CLI</PackageId>
-```
+The CLI project is packed as a global tool:
 
-Pack and install locally:
+| Property | Value |
+| --- | --- |
+| `PackageId` | `monorepo-dotnet` (what people pass to `dotnet tool install`) |
+| `ToolCommandName` | `monorepo` (what they type afterwards) |
+| License | MIT |
+| Repository | https://github.com/phuctran362003/monorepo-dotnet-boilerplate |
 
-```bash
+A global tool is framework-dependent: installers need the .NET 10 SDK (the
+generator needs the SDK anyway). Do **not** pack with `-r win-x64` or
+`PublishSingleFile`; `dotnet pack` builds a portable tool.
+
+`PackageId` is frozen at first NuGet.org push. Do not rename it after that.
+
+### Pack and install locally (dry run)
+
+Do this before the first NuGet.org push.
+
+```powershell
 dotnet pack src/MonorepoDotnet.CLI -c Release -o artifacts/packages
-dotnet tool install --global --add-source artifacts/packages MonorepoDotnet.CLI
+dotnet tool uninstall --global monorepo-dotnet   # ignore errors if not installed
+dotnet tool install --global --add-source artifacts/packages monorepo-dotnet
 monorepo --version
 ```
 
-Update or remove:
+Update or remove a local install:
 
-```bash
-dotnet tool update --global --add-source artifacts/packages MonorepoDotnet.CLI
-dotnet tool uninstall --global MonorepoDotnet.CLI
+```powershell
+dotnet tool update --global --add-source artifacts/packages monorepo-dotnet
+dotnet tool uninstall --global monorepo-dotnet
 ```
 
-To publish to NuGet.org, set a unique `PackageId` (the current one is a
-placeholder), add package metadata (authors, license, repository URL) and push:
+### Publish from GitHub Actions (Trusted Publishing)
 
-```bash
-dotnet nuget push artifacts/packages/MonorepoDotnet.CLI.0.1.0.nupkg --api-key $NUGET_API_KEY --source https://api.nuget.org/v3/index.json
+This is the path that uses the nuget.org policy form. It does **not** need a
+long-lived API key. The policy is bound to a specific workflow file: if that
+file is missing, the policy never issues a key.
+
+Repo already has `.github/workflows/publish.yml`. Fill the policy as:
+
+| Field | Value |
+| --- | --- |
+| Policy Name | `monorepo-dotnet-release` |
+| Package Owner | `devphuctrann` (nuget.org profile name, not email) |
+| CI/CD Provider | GitHub Actions |
+| Repository Owner | `phuctran362003` |
+| Repository | `monorepo-dotnet-boilerplate` (the GitHub repo name, not the local folder) |
+| Workflow File | `publish.yml` (file name only, no `.github/workflows/`) |
+| Environment | `production` |
+
+On GitHub, create the environment **Settings → Environments → `production`**.
+The job uses `environment: production`; if the policy has that field filled,
+the names must match. Leave Environment empty on nuget.org only if you also
+remove `environment:` from the workflow.
+
+After the policy is saved and this workflow is on the default branch:
+
+1. Bump `<Version>` and push.
+2. Actions → **publish** → Run workflow, or publish a GitHub Release.
+
+Local `dotnet nuget push` still needs a classic API key (below). Trusted
+Publishing only applies to that GitHub Actions job.
+
+### One-click from the repo root
+
+Double-click `publish-nuget.bat` (or run it from a terminal). It reads
+`<Version>` in `src/MonorepoDotnet.CLI/MonorepoDotnet.CLI.csproj`, bumps the
+**patch** (`0.1.0` → `0.1.1`), writes it back, packs the global tool, pushes to
+nuget.org, and updates the local `monorepo` tool from the new nupkg.
+
+```bat
+publish-nuget.bat
+publish-nuget.bat minor
+publish-nuget.bat major
 ```
+
+The API key is **not** in the repo. Provide it as `NUGET_API_KEY`, or save it
+once in `.nuget-api-key` at the repo root (gitignored). Create a key at
+https://www.nuget.org/account/apikeys.
+
+### Publish from your machine (classic API key)
+
+**1. Create an account and API key**
+
+1. Sign in at [https://www.nuget.org](https://www.nuget.org) (Microsoft account).
+2. [Account settings → API Keys](https://www.nuget.org/account/apikeys) → Create.
+3. Scope: **Push** (and unlist if you want). Package glob: `monorepo-dotnet`
+   or `*`.
+4. Copy the key once. Keep it out of the repo. In the current terminal:
+
+```powershell
+$env:NUGET_API_KEY = "....paste once...."
+```
+
+Never commit the key. Never put it in a `NuGet.Config` that is checked in.
+
+**2. Pack, inspect, push**
+
+Bump `<Version>` in `src/MonorepoDotnet.CLI/MonorepoDotnet.CLI.csproj` before
+every push; you cannot replace a version that already exists on nuget.org.
+
+```powershell
+dotnet pack src/MonorepoDotnet.CLI -c Release -o artifacts/packages
+dotnet nuget push artifacts/packages/monorepo-dotnet.0.1.0.nupkg `
+  --api-key $env:NUGET_API_KEY `
+  --source https://api.nuget.org/v3/index.json `
+  --skip-duplicate
+```
+
+Indexing on nuget.org often takes a few minutes. The package page:
+
+`https://www.nuget.org/packages/monorepo-dotnet`
+
+**3. Install from nuget.org** (any machine with the .NET 10 SDK):
+
+```powershell
+dotnet tool install --global monorepo-dotnet
+monorepo
+```
+
+Later versions:
+
+```powershell
+dotnet tool update --global monorepo-dotnet
+```
+
+Uninstall:
+
+```powershell
+dotnet tool uninstall --global monorepo-dotnet
+```
+
+**4. Next release**
+
+1. Bump `<Version>` in the CLI csproj (and `--version` will follow).
+2. `dotnet pack` then `dotnet nuget push` the new nupkg.
+3. Users run `dotnet tool update --global monorepo-dotnet`.
+
+If a push fails with 409 Conflict, that version already exists — bump the
+version. If it fails with 403, the API key is missing push permission or the
+id is owned by another account.
 
 ## Versioning
 

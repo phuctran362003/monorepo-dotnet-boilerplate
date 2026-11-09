@@ -1,3 +1,4 @@
+using MonorepoDotnet.Core.Generation;
 using MonorepoDotnet.Core.Models;
 using MonorepoDotnet.Core.Validation;
 using Spectre.Console;
@@ -40,7 +41,7 @@ public sealed class ConfigurationPrompt
         var dotNetVersion = AnsiConsole.Prompt(
             new SelectionPrompt<string>()
                 .Title("Target [green].NET version[/]:")
-                .AddChoices("net10.0 (.NET 10)"));
+                .AddChoices(DotNetVersionCatalog.All.Select(profile => profile.ChoiceLabel)));
 
         var architecture = AnsiConsole.Prompt(
             new SelectionPrompt<ArchitectureType>()

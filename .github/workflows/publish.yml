@@ -1,0 +1,54 @@
+# NuGet.org Trusted Publishing (GitHub OIDC). No long-lived API key.
+#
+# nuget.org policy (must match this file and job environment):
+#   Policy Name:        monorepo-dotnet-release
+#   Package Owner:      devphuctrann
+#   CI/CD Provider:     GitHub Actions
+#   Repository Owner:   phuctran362003
+#   Repository:         monorepo-dotnet-boilerplate
+#   Workflow File:      publish.yml
+#   Environment:        production
+#
+# GitHub: Settings → Environments → create "production" (optional reviewers).
+# Bump <Version> in src/MonorepoDotnet.CLI/MonorepoDotnet.CLI.csproj, then
+# run this workflow (Actions → publish → Run workflow) or publish a GitHub Release.
+
+name: publish
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Pack
+        run: dotnet pack src/MonorepoDotnet.CLI -c Release -o artifacts/packages
+
+      - name: NuGet login (OIDC → temporary API key)
+        id: login
+        uses: NuGet/login@v1
+        with:
+          user: devphuctrann
+
+      - name: Push to nuget.org
+        run: >
+          dotnet nuget push artifacts/packages/*.nupkg
+          --api-key "${{ steps.login.outputs.NUGET_API_KEY }}"
+          --source https://api.nuget.org/v3/index.json
+          --skip-duplicate
