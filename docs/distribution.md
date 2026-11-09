@@ -160,10 +160,8 @@ Publishing only applies to that GitHub Actions job.
 Double-click `publish-nuget.bat` (or run it from a terminal). The bat launches
 `scripts/publish-nuget.ps1`. It reads
 `<Version>` in `src/MonorepoDotnet.CLI/MonorepoDotnet.CLI.csproj`, bumps the
-**patch** (`0.1.0` → `0.1.1`), writes it back, packs once, then publishes to
-**both** nuget.org and this machine: `dotnet nuget push` plus
-`dotnet tool install --global` from the packed nupkg (a local-only NuGet
-config, so it does not wait for nuget.org indexing).
+**patch** (`0.1.0` → `0.1.1`), writes it back, packs once, then pushes the
+nupkg to nuget.org. It does not install or update the tool on this machine.
 
 ```bat
 publish-nuget.bat
