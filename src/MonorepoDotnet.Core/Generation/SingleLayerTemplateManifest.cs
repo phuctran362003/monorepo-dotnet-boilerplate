@@ -19,7 +19,8 @@ public static class SingleLayerTemplateManifest
         new("Console/SingleLayer/Project.csproj.tpl", "src/{{SingleLayerProject}}/{{SingleLayerProject}}.csproj", Host: ProjectKind.Console),
         new("Console/SingleLayer/Program.cs.tpl", "src/{{SingleLayerProject}}/Program.cs", Host: ProjectKind.Console),
         new("Console/Host/Properties/launchSettings.json.tpl", "src/{{SingleLayerProject}}/Properties/launchSettings.json", Host: ProjectKind.Console),
-        new("SingleLayer/Common/IUnitOfWork.cs.tpl", "src/{{SingleLayerProject}}/Common/IUnitOfWork.cs"),
+        new("Persistence/BaseEntity.cs.tpl", "src/{{SingleLayerProject}}/Entities/BaseEntity.cs"),
+        new("Persistence/IUnitOfWork.cs.tpl", "src/{{SingleLayerProject}}/Common/IUnitOfWork.cs"),
         new("SingleLayer/Exceptions/DomainException.cs.tpl", "src/{{SingleLayerProject}}/Exceptions/DomainException.cs"),
 
         // Models and product slice
@@ -39,9 +40,10 @@ public static class SingleLayerTemplateManifest
 
         // Persistence
         new("SingleLayer/Data/ApplicationDbContext.cs.tpl", "src/{{SingleLayerProject}}/Data/ApplicationDbContext.cs"),
-        new("SingleLayer/Data/IProductRepository.cs.tpl", "src/{{SingleLayerProject}}/Data/IProductRepository.cs"),
+        new("Persistence/IGenericRepository.cs.tpl", "src/{{SingleLayerProject}}/Data/IGenericRepository.cs"),
         new("SingleLayer/Data/Configurations/ProductConfiguration.cs.tpl", "src/{{SingleLayerProject}}/Data/Configurations/ProductConfiguration.cs"),
-        new("SingleLayer/Data/Repositories/ProductRepository.cs.tpl", "src/{{SingleLayerProject}}/Data/Repositories/ProductRepository.cs"),
+        new("Persistence/GenericRepository.cs.tpl", "src/{{SingleLayerProject}}/Data/Repositories/GenericRepository.cs"),
+        new("Persistence/UnitOfWork.cs.tpl", "src/{{SingleLayerProject}}/Data/UnitOfWork.cs"),
         new("SingleLayer/Data/ApplicationDbContextFactory.cs.tpl", "src/{{SingleLayerProject}}/Data/ApplicationDbContextFactory.cs"),
         new("SingleLayer/Data/Migrations/.gitkeep.tpl", "src/{{SingleLayerProject}}/Data/Migrations/.gitkeep"),
         new("SingleLayer/Data/RedisCacheService.cs.tpl", "src/{{SingleLayerProject}}/Data/RedisCacheService.cs", OptionalPackage.Redis),

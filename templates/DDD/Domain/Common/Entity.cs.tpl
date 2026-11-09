@@ -1,10 +1,11 @@
+using {{DomainNamespace}}.Entities;
+
 namespace {{DomainNamespace}}.Common;
 
 /// <summary>
-/// Base type for domain entities. Entities are identified by their id, not by
-/// their attribute values.
+/// Base type for domain entities. Identity and audit fields come from
+/// <see cref="BaseEntity"/>.
 /// </summary>
-public abstract class Entity
+public abstract class Entity : BaseEntity
 {
-    public Guid Id { get; protected set; } = Guid.NewGuid();
 }

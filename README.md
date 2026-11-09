@@ -71,8 +71,8 @@ the migration later.
   match the selected target framework.
 - **Four architectures** — DDD, Clean Architecture, 1-Layer API, and MVC.
 - **EF Core Code First** — PostgreSQL or SQL Server with
-  `ApplicationDbContext`, a design-time factory, and an `InitialCreate`
-  migration.
+  `ApplicationDbContext` and a design-time factory. Migrations are not created
+  during generation.
 - **Optional Docker setup** — generates a multi-stage Dockerfile and Docker
   Compose configuration with a database, volume, health check, and environment
   variables.

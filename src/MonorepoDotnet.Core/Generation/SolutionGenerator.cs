@@ -12,7 +12,7 @@ namespace MonorepoDotnet.Core.Generation;
 /// </summary>
 public sealed class SolutionGenerator : ISolutionGenerator
 {
-    private const int TotalSteps = 8;
+    private const int TotalSteps = 7;
     private readonly IFileSystem _fileSystem;
     private readonly ITemplateProvider _templateProvider;
     private readonly ITemplateRenderer _templateRenderer;
@@ -82,23 +82,7 @@ public sealed class SolutionGenerator : ISolutionGenerator
                     cancellationToken)
                 .ConfigureAwait(false);
 
-            progress?.Report(new GenerationProgress(7, TotalSteps, "Creating initial EF Core migration"));
-            var migrationCreated = await TryCreateInitialMigrationAsync(
-                    rootDirectory,
-                    layout,
-                    warnings,
-                    cancellationToken)
-                .ConfigureAwait(false);
-
-            progress?.Report(new GenerationProgress(8, TotalSteps, "Finalizing"));
-
-            if (!migrationCreated)
-            {
-                var efVersion = PackageVersions.For(options.DotNetVersion).EntityFrameworkCore;
-                warnings.Add(
-                    "The initial EF Core migration was not generated. Install the EF tool " +
-                    $"('dotnet tool install --global dotnet-ef --version {efVersion}') and run the migration command from the generated README.");
-            }
+            progress?.Report(new GenerationProgress(7, TotalSteps, "Finalizing"));
 
             return GenerationResult.Ok(rootDirectory, warnings);
         }
@@ -286,53 +270,6 @@ public sealed class SolutionGenerator : ISolutionGenerator
         }
     }
 
-    private async Task<bool> TryCreateInitialMigrationAsync(
-        string rootDirectory,
-        SolutionLayout layout,
-        List<string> warnings,
-        CancellationToken cancellationToken)
-    {
-        if (layout.MigrationProject is null ||
-            layout.MigrationStartupProject is null ||
-            string.IsNullOrWhiteSpace(layout.MigrationOutputDirectory))
-        {
-            return true;
-        }
-
-        var toolCheck = await _processRunner
-            .RunAsync("dotnet", ["ef", "--version"], rootDirectory, cancellationToken)
-            .ConfigureAwait(false);
-
-        if (!toolCheck.Succeeded)
-        {
-            return false;
-        }
-
-        var result = await _processRunner
-            .RunAsync(
-                "dotnet",
-                [
-                    "ef", "migrations", "add", "InitialCreate",
-                    "--project", layout.MigrationProject.RelativePath,
-                    "--startup-project", layout.MigrationStartupProject.RelativePath,
-                    "--output-dir", layout.MigrationOutputDirectory,
-                    "--no-build"
-                ],
-                rootDirectory,
-                cancellationToken)
-            .ConfigureAwait(false);
-
-        if (!result.Succeeded)
-        {
-            warnings.Add(
-                "The initial EF Core migration could not be created automatically. " +
-                TrimForDisplay(result.StandardError));
-            return false;
-        }
-
-        return true;
-    }
-
     private void CleanupOnFailure(string rootDirectory, bool createdRoot)
     {
         if (!createdRoot)
@@ -368,6 +305,27 @@ public sealed class SolutionGenerator : ISolutionGenerator
         return new Dictionary<string, string>(StringComparer.Ordinal)
         {
             ["SolutionName"] = options.SolutionName,
+            ["BaseEntityNamespace"] = options.Architecture is ArchitectureType.Ddd or ArchitectureType.Clean
+                ? $"{options.DomainProject}.Entities"
+                : $"{options.MainProject}.Entities",
+            ["RepositoryInterfaceNamespace"] = options.Architecture is ArchitectureType.Ddd or ArchitectureType.Clean
+                ? $"{options.DomainProject}.Repositories"
+                : $"{options.MainProject}.Data",
+            ["RepositoryImplementationNamespace"] = options.Architecture is ArchitectureType.Ddd or ArchitectureType.Clean
+                ? $"{options.InfrastructureProject}.Persistence.Repositories"
+                : $"{options.MainProject}.Data.Repositories",
+            ["UnitOfWorkInterfaceNamespace"] = options.Architecture is ArchitectureType.Ddd or ArchitectureType.Clean
+                ? $"{options.ApplicationProject}.Common.Interfaces"
+                : $"{options.MainProject}.Common",
+            ["UnitOfWorkImplementationNamespace"] = options.Architecture is ArchitectureType.Ddd or ArchitectureType.Clean
+                ? $"{options.InfrastructureProject}.Persistence"
+                : $"{options.MainProject}.Data",
+            ["DbContextNamespace"] = options.Architecture is ArchitectureType.Ddd or ArchitectureType.Clean
+                ? $"{options.InfrastructureProject}.Persistence"
+                : $"{options.MainProject}.Data",
+            ["ProductEntityNamespace"] = options.Architecture is ArchitectureType.Ddd or ArchitectureType.Clean
+                ? $"{options.DomainProject}.Entities"
+                : $"{options.MainProject}.Models",
             ["Namespace"] = layout.MainProject.Name,
             ["DomainProject"] = options.DomainProject,
             ["ApplicationProject"] = options.ApplicationProject,

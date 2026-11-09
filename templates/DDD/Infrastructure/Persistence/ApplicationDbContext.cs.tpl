@@ -1,10 +1,9 @@
-using {{ApplicationNamespace}}.Common.Interfaces;
 using {{DomainNamespace}}.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace {{InfrastructureNamespace}}.Persistence;
 
-public sealed class ApplicationDbContext : DbContext, IUnitOfWork
+public sealed class ApplicationDbContext : DbContext
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
     {

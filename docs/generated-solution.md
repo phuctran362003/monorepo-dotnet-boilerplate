@@ -58,12 +58,12 @@ No project references. Every `PackageReference` for the solution lives in this p
 | Folder | Contents |
 | --- | --- |
 | `Common/` | `Entity`, `AggregateRoot`, `ValueObject`, `DomainEvent`, `IDomainEvent`. |
-| `Entities/` | `Product` aggregate with encapsulated state and behavior. |
+| `Entities/` | `BaseEntity` and the `Product` aggregate. |
 | `ValueObjects/` | `ProductName` value object. |
 | `Enums/` | `ProductStatus`. |
 | `DomainEvents/` | `ProductCreatedDomainEvent`. |
 | `Exceptions/` | `DomainException`. |
-| `Repositories/` | `IProductRepository` (domain-level persistence contract). |
+| `Repositories/` | `IGenericRepository<T>` constrained to `BaseEntity`. |
 
 ## Application
 
@@ -78,7 +78,7 @@ The project file references Domain only. Its packages come from that reference.
 | `Products/Dtos/` | `ProductDto`, `CreateProductRequest`. |
 | `Products/Validators/` | `CreateProductRequestValidator` (only with FluentValidation). |
 | `Products/MappingProfile.cs` | AutoMapper profile mapping `Product` to `ProductDto` (only with AutoMapper). |
-| `Common/Interfaces/` | `IUnitOfWork`. |
+| `Common/Interfaces/` | `IUnitOfWork` with `Products`, `SaveChangesAsync` and transactions. |
 | `Common/Caching/` | `ICacheService` (only with Redis). |
 | `DependencyInjection.cs` | `AddApplication(IConfiguration)`. |
 
@@ -91,8 +91,9 @@ with your own bounded contexts.
 | --- | --- |
 | `Persistence/` | `ApplicationDbContext`. |
 | `Persistence/Configurations/` | `ProductConfiguration` (`IEntityTypeConfiguration<Product>`). |
-| `Persistence/Repositories/` | `ProductRepository` implementing `IProductRepository`. |
-| `Persistence/Migrations/` | EF Core migration folder (`InitialCreate` when the EF tool is available). |
+| `Persistence/` | `UnitOfWork` exposing `IGenericRepository<Product>`. |
+| `Persistence/Repositories/` | `GenericRepository<T>`. |
+| `Persistence/Migrations/` | Empty folder. Add a migration with `dotnet ef migrations add` when you need one. |
 | `Persistence/ApplicationDbContextFactory.cs` | Design-time factory so `dotnet ef` works without a running database. |
 | `Caching/` | `RedisCacheService` (only with Redis). |
 | `DependencyInjection.cs` | `AddInfrastructure(IConfiguration)`; registers the DbContext with `UseNpgsql` and retry-on-failure. |

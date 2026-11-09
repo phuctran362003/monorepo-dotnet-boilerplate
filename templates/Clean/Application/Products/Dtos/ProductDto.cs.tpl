@@ -7,8 +7,8 @@ public sealed record ProductDto(
     string Name,
     decimal Price,
     string Status,
-    DateTime CreatedAtUtc)
+    DateTime CreatedAt)
 {
     public static ProductDto FromEntity(Product product) =>
-        new(product.Id, product.Name, product.Price, product.Status, product.CreatedAtUtc);
+        new(product.Id, product.Name, product.Price, product.Status, product.CreatedAt);
 }

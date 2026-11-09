@@ -55,8 +55,8 @@ if (!string.IsNullOrWhiteSpace(databasePassword))
         sqlServer.EnableRetryOnFailure(3);
     }));
 {{/if}}
-builder.Services.AddScoped<IProductRepository, ProductRepository>();
-builder.Services.AddScoped<IUnitOfWork>(provider => provider.GetRequiredService<ApplicationDbContext>());
+builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IProductService, ProductService>();
 {{#if FluentValidation}}
 builder.Services.AddValidatorsFromAssemblyContaining<ProductService>();

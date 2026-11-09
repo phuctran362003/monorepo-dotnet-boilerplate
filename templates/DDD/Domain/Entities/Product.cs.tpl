@@ -17,6 +17,7 @@ public sealed class Product : AggregateRoot
 
     private Product(ProductName name, decimal price, ProductStatus status)
     {
+        Id = Guid.NewGuid();
         Name = name;
         Price = price;
         Status = status;
@@ -27,8 +28,6 @@ public sealed class Product : AggregateRoot
     public decimal Price { get; private set; }
 
     public ProductStatus Status { get; private set; }
-
-    public DateTime CreatedAtUtc { get; private set; } = DateTime.UtcNow;
 
     public static Product Create(ProductName name, decimal price)
     {

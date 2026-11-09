@@ -2,7 +2,6 @@ using {{ApplicationNamespace}}.Common.Interfaces;
 {{#if Redis}}using {{ApplicationNamespace}}.Common.Caching;
 {{/if}}using {{ApplicationNamespace}}.Products.Dtos;
 using {{DomainNamespace}}.Entities;
-using {{DomainNamespace}}.Repositories;
 {{#if AutoMapper}}using AutoMapper;
 {{/if}}
 namespace {{ApplicationNamespace}}.Products;
@@ -11,18 +10,15 @@ public sealed class ProductService : IProductService
 {
     private const string ProductsCacheKey = "products:all";
 
-    private readonly IProductRepository _repository;
     private readonly IUnitOfWork _unitOfWork;
 {{#if AutoMapper}}    private readonly IMapper _mapper;
 {{/if}}{{#if Redis}}    private readonly ICacheService _cache;
 {{/if}}
     public ProductService(
-        IProductRepository repository,
         IUnitOfWork unitOfWork{{#if AutoMapper}},
         IMapper mapper{{/if}}{{#if Redis}},
         ICacheService cache{{/if}})
     {
-        _repository = repository;
         _unitOfWork = unitOfWork;
 {{#if AutoMapper}}        _mapper = mapper;
 {{/if}}{{#if Redis}}        _cache = cache;
@@ -36,7 +32,7 @@ public sealed class ProductService : IProductService
             return cached;
         }
 
-{{/if}}        var products = await _repository.GetAllAsync(cancellationToken);
+{{/if}}        var products = await _unitOfWork.Products.GetAllAsync();
         var result = products.Select(Map).ToList();
 
 {{#if Redis}}        await _cache.SetAsync(ProductsCacheKey, result, TimeSpan.FromMinutes(5), cancellationToken);
@@ -46,7 +42,7 @@ public sealed class ProductService : IProductService
 
     public async Task<ProductDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var product = await _repository.GetByIdAsync(id, cancellationToken);
+        var product = await _unitOfWork.Products.GetByIdAsync(id);
         return product is null ? null : Map(product);
     }
 
@@ -58,7 +54,7 @@ public sealed class ProductService : IProductService
 
         var product = Product.Create(request.Name, request.Price);
 
-        await _repository.AddAsync(product, cancellationToken);
+        await _unitOfWork.Products.AddAsync(product);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 {{#if Redis}}
         await _cache.RemoveAsync(ProductsCacheKey, cancellationToken);

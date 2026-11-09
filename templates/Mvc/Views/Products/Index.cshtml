@@ -32,7 +32,7 @@ else
                 <td>@product.Name</td>
                 <td>@product.Price.ToString("C")</td>
                 <td>@product.Status</td>
-                <td>@product.CreatedAtUtc.ToString("u")</td>
+                <td>@product.CreatedAt.ToString("u")</td>
                 <td><a asp-action="Details" asp-route-id="@product.Id">Details</a></td>
             </tr>
         }

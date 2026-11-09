@@ -30,9 +30,7 @@ public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
             .HasMaxLength(32)
             .IsRequired();
 
-        builder.Property(product => product.CreatedAtUtc)
-            .HasColumnName("created_at_utc")
-            .IsRequired();
+        builder.HasQueryFilter(product => !product.IsDeleted);
 
         builder.Ignore(product => product.DomainEvents);
 

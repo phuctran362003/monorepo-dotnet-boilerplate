@@ -156,11 +156,10 @@ The generator writes every file from embedded templates, then runs:
 2. `dotnet sln {SolutionName}.sln add src/.../*.csproj`
 3. `dotnet restore {SolutionName}.sln`
 4. `dotnet build {SolutionName}.sln --no-restore -c Debug --nologo`
-5. `dotnet ef migrations add InitialCreate` (best effort)
 
-Steps 1–4 are fatal on failure: the newly created directory is deleted and the
-error is shown. Step 5 only produces a warning; the solution is still valid and
-you can create the migration manually.
+These steps are fatal on failure: the newly created directory is deleted and the
+error is shown. The generator does not create an EF Core migration. Add one
+with `dotnet ef migrations add` when you are ready.
 
 No database is created or updated during generation. Migrations are only applied
 when you ask for it (`dotnet ef database update`, or `APPLY_MIGRATIONS=true`

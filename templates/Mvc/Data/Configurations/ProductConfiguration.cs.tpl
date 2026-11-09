@@ -23,7 +23,6 @@ public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
             .HasMaxLength(50)
             .IsRequired();
 
-        builder.Property(product => product.CreatedAtUtc)
-            .IsRequired();
+        builder.HasQueryFilter(product => !product.IsDeleted);
     }
 }

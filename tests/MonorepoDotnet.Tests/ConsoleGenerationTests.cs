@@ -85,6 +85,40 @@ public class ConsoleGenerationTests
         AssertPackagesLiveOnDomain(root);
     }
 
+    [Theory]
+    [InlineData(ProjectKind.WebApi, ArchitectureType.Clean, "WebClean")]
+    [InlineData(ProjectKind.WebApi, ArchitectureType.SingleLayer, "WebLayer")]
+    [InlineData(ProjectKind.Mvc, ArchitectureType.Mvc, "WebMvc")]
+    public async Task Generate_OtherHosts_Build(ProjectKind projectKind, ArchitectureType architecture, string solutionName)
+    {
+        var output = Path.Combine(Path.GetTempPath(), "monorepo-console-check");
+        var root = Path.Combine(output, solutionName);
+        if (Directory.Exists(root))
+        {
+            Directory.Delete(root, recursive: true);
+        }
+
+        var generator = new SolutionGenerator(
+            new FileSystemService(),
+            new TemplateProvider(),
+            new TemplateRenderer(),
+            new ProcessRunner());
+
+        var result = await generator.GenerateAsync(new GeneratorOptions
+        {
+            SolutionName = solutionName,
+            OutputDirectory = output,
+            ProjectKind = projectKind,
+            Architecture = architecture,
+            Database = DatabaseProvider.PostgreSql,
+            IncludeDocker = false,
+            BuildAfterGeneration = true
+        });
+
+        Assert.True(result.Success, result.Error);
+        Assert.Contains("class BaseEntity", Directory.GetFiles(root, "BaseEntity.cs", SearchOption.AllDirectories).Select(File.ReadAllText).Single(), StringComparison.Ordinal);
+    }
+
     private static void AssertPackagesLiveOnDomain(string root)
     {
         foreach (var project in Directory.GetFiles(root, "*.csproj", SearchOption.AllDirectories))

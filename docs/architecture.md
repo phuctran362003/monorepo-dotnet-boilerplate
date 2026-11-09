@@ -39,7 +39,7 @@ MonorepoDotnet.CLI ──────────► Core
 
 ## Generation pipeline
 
-`SolutionGenerator.GenerateAsync` runs eight steps and reports each one
+`SolutionGenerator.GenerateAsync` runs seven steps and reports each one
 through `IProgress<GenerationProgress>`:
 
 1. **Prepare** — validate options and create `{OutputDirectory}/{SolutionName}`.
@@ -53,14 +53,13 @@ through `IProgress<GenerationProgress>`:
 4. **Create solution** — `dotnet new sln` followed by `dotnet sln add`.
 5. **Restore** — `dotnet restore {SolutionName}.sln`.
 6. **Build** — `dotnet build --no-restore -c Debug --nologo`.
-7. **Initial migration** — `dotnet ef migrations add InitialCreate`, using the
-   project/startup project/output directory from `SolutionLayouts`, best effort.
-8. **Finalize** — collect warnings and return `GenerationResult`.
+7. **Finalize** — collect warnings and return `GenerationResult`.
+
+The generator does not create an EF Core migration. The migrations folder is
+empty until you run `dotnet ef migrations add`.
 
 Failure semantics: a failing step throws `GenerationException`, the CLI shows a
 failure panel, and the root directory is deleted if the generator created it.
-A missing `dotnet-ef` tool or a failed migration only adds a warning; the
-solution is still usable.
 
 Cancellation (`Ctrl+C`) propagates an `OperationCanceledException`, triggers the
 same cleanup and exits with code `130`.

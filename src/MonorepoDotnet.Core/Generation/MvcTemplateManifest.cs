@@ -16,7 +16,8 @@ public static class MvcTemplateManifest
         // Project
         new("Mvc/Project.csproj.tpl", "src/{{MvcProject}}/{{MvcProject}}.csproj"),
         new("Mvc/Program.cs.tpl", "src/{{MvcProject}}/Program.cs"),
-        new("Mvc/Common/IUnitOfWork.cs.tpl", "src/{{MvcProject}}/Common/IUnitOfWork.cs"),
+        new("Persistence/BaseEntity.cs.tpl", "src/{{MvcProject}}/Entities/BaseEntity.cs"),
+        new("Persistence/IUnitOfWork.cs.tpl", "src/{{MvcProject}}/Common/IUnitOfWork.cs"),
         new("Mvc/Exceptions/DomainException.cs.tpl", "src/{{MvcProject}}/Exceptions/DomainException.cs"),
 
         // Models and product slice
@@ -36,9 +37,10 @@ public static class MvcTemplateManifest
 
         // Persistence
         new("Mvc/Data/ApplicationDbContext.cs.tpl", "src/{{MvcProject}}/Data/ApplicationDbContext.cs"),
-        new("Mvc/Data/IProductRepository.cs.tpl", "src/{{MvcProject}}/Data/IProductRepository.cs"),
+        new("Persistence/IGenericRepository.cs.tpl", "src/{{MvcProject}}/Data/IGenericRepository.cs"),
         new("Mvc/Data/Configurations/ProductConfiguration.cs.tpl", "src/{{MvcProject}}/Data/Configurations/ProductConfiguration.cs"),
-        new("Mvc/Data/Repositories/ProductRepository.cs.tpl", "src/{{MvcProject}}/Data/Repositories/ProductRepository.cs"),
+        new("Persistence/GenericRepository.cs.tpl", "src/{{MvcProject}}/Data/Repositories/GenericRepository.cs"),
+        new("Persistence/UnitOfWork.cs.tpl", "src/{{MvcProject}}/Data/UnitOfWork.cs"),
         new("Mvc/Data/ApplicationDbContextFactory.cs.tpl", "src/{{MvcProject}}/Data/ApplicationDbContextFactory.cs"),
         new("Mvc/Data/Migrations/.gitkeep.tpl", "src/{{MvcProject}}/Data/Migrations/.gitkeep"),
         new("Mvc/Data/RedisCacheService.cs.tpl", "src/{{MvcProject}}/Data/RedisCacheService.cs", OptionalPackage.Redis),

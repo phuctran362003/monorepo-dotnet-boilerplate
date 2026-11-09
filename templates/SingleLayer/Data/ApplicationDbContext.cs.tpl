@@ -1,10 +1,9 @@
-using {{Namespace}}.Common;
 using {{Namespace}}.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace {{Namespace}}.Data;
 
-public sealed class ApplicationDbContext : DbContext, IUnitOfWork
+public sealed class ApplicationDbContext : DbContext
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
     {

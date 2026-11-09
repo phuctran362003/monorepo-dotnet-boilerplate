@@ -1,3 +1,4 @@
+using {{Namespace}}.Entities;
 using {{Namespace}}.Exceptions;
 
 namespace {{Namespace}}.Models;
@@ -6,7 +7,7 @@ namespace {{Namespace}}.Models;
 /// Sample entity for the MVC layout. Keep business rules on the entity so
 /// controllers and services stay thin.
 /// </summary>
-public sealed class Product
+public sealed class Product : BaseEntity
 {
     private Product()
     {
@@ -15,21 +16,17 @@ public sealed class Product
 
     private Product(string name, decimal price)
     {
+        Id = Guid.NewGuid();
         Name = name;
         Price = price;
         Status = "Draft";
-        CreatedAtUtc = DateTime.UtcNow;
     }
-
-    public Guid Id { get; private set; } = Guid.NewGuid();
 
     public string Name { get; private set; } = string.Empty;
 
     public decimal Price { get; private set; }
 
     public string Status { get; private set; } = "Draft";
-
-    public DateTime CreatedAtUtc { get; private set; }
 
     public static Product Create(string name, decimal price)
     {
