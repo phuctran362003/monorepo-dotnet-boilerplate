@@ -15,6 +15,7 @@ public static class ArchitectureTemplateManifest
 
         return options.Architecture switch
         {
+            ArchitectureType.Standard => StandardTemplateManifest.ForOptions(options).ToList(),
             ArchitectureType.Ddd => DddTemplateManifest.ForOptions(options).ToList(),
             ArchitectureType.Clean => CleanTemplateManifest.ForOptions(options).ToList(),
             ArchitectureType.SingleLayer => SingleLayerTemplateManifest.ForOptions(options).ToList(),

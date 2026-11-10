@@ -27,6 +27,7 @@ public static class SolutionLayouts
 
         return options.Architecture switch
         {
+            ArchitectureType.Standard => CreateStandard(options),
             ArchitectureType.Ddd => CreateDdd(options),
             ArchitectureType.Clean => CreateClean(options),
             ArchitectureType.SingleLayer => CreateSingleProject(
@@ -42,6 +43,22 @@ public static class SolutionLayouts
             _ => throw new GenerationException(
                 $"Architecture '{options.Architecture}' is not implemented yet.")
         };
+    }
+
+    private static SolutionLayout CreateStandard(GeneratorOptions options)
+    {
+        var domain = Project(options.DomainProject);
+        var infrastructure = Project(options.InfrastructureProject);
+        var service = Project(options.ServiceProject);
+        var api = Project(options.ApiProject);
+
+        return new SolutionLayout(
+            ArchitectureType.Standard,
+            [domain, infrastructure, service, api],
+            api,
+            domain,
+            api,
+            "Migrations");
     }
 
     private static SolutionLayout CreateDdd(GeneratorOptions options)

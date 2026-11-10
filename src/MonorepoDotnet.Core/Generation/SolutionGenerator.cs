@@ -223,7 +223,7 @@ public sealed class SolutionGenerator : ISolutionGenerator
         var newSolution = await _processRunner
             .RunAsync(
                 "dotnet",
-                ["new", "sln", "--name", options.SolutionName, "--output", rootDirectory, "--format", "sln"],
+                ["new", "sln", "--name", options.SolutionName, "--output", rootDirectory, "--format", SolutionFormat(options)],
                 rootDirectory,
                 cancellationToken)
             .ConfigureAwait(false);
@@ -344,7 +344,11 @@ public sealed class SolutionGenerator : ISolutionGenerator
         }
     }
 
-    private static string SolutionFileName(GeneratorOptions options) => $"{options.SolutionName}.sln";
+    private static string SolutionFileName(GeneratorOptions options) =>
+        $"{options.SolutionName}.{(options.Architecture == ArchitectureType.Standard ? "slnx" : "sln")}";
+
+    private static string SolutionFormat(GeneratorOptions options) =>
+        options.Architecture == ArchitectureType.Standard ? "slnx" : "sln";
 
     private static string TrimForDisplay(string value)
     {
@@ -388,6 +392,7 @@ public sealed class SolutionGenerator : ISolutionGenerator
             ["ApplicationProject"] = options.ApplicationProject,
             ["InfrastructureProject"] = options.InfrastructureProject,
             ["ApiProject"] = options.MainProject,
+            ["ServiceProject"] = options.ServiceProject,
             ["ConsoleProject"] = options.ConsoleProject,
             ["ComposeService"] = options.ProjectKind == ProjectKind.Console ? "app" : "api",
             ["WebApiProject"] = options.WebApiProject,
@@ -446,6 +451,7 @@ public sealed class SolutionGenerator : ISolutionGenerator
             ["AutoMapper"] = options.HasPackage(OptionalPackage.AutoMapper),
             ["Redis"] = options.HasPackage(OptionalPackage.Redis),
             ["MediatR"] = options.HasPackage(OptionalPackage.MediatR),
+            ["Standard"] = options.Architecture == ArchitectureType.Standard,
             ["Ddd"] = options.Architecture == ArchitectureType.Ddd,
             ["Clean"] = options.Architecture == ArchitectureType.Clean,
             ["SingleLayer"] = options.Architecture == ArchitectureType.SingleLayer,

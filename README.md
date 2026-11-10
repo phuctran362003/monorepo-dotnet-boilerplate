@@ -22,7 +22,8 @@ Remove the global tool:
 dotnet tool uninstall --global monorepo-dotnet
 ```
 
-Choose the solution name, .NET version, architecture, database, and packages.
+Choose the solution name, application, architecture, database, and packages.
+Generated solutions target .NET 10.
 When generation finishes:
 
 ```bash
@@ -49,7 +50,7 @@ dotnet publish src/MonorepoDotnet.CLI `
   -o artifacts/win-x64
 ```
 
-You need a .NET 8, 9, or 10 SDK matching the selected target. If it is missing,
+You need the .NET 10 SDK. If it is missing,
 the CLI shows the official Microsoft installation command and can run it for
 you. Docker is only required to run the containers. `dotnet-ef` is optional;
 without it, the solution is still generated and the CLI explains how to create
@@ -67,9 +68,10 @@ the migration later.
 
 ## Key features
 
-- **.NET 8, 9, and 10** — package versions and Docker images automatically
-  match the selected target framework.
-- **Four architectures** — DDD, Clean Architecture, 1-Layer API, and MVC.
+- **.NET 10** — generated solutions target `net10.0`. Package versions and
+  Docker images match that framework.
+- **Standard backend** — the default Web API layout is `API` → `Service` → `Infrastructure` → `Domain`, from `docs/backend-structure.md`.
+- **Other architectures** — DDD, Clean Architecture, 1-Layer API, and MVC.
 - **EF Core Code First** — PostgreSQL or SQL Server with
   `ApplicationDbContext` and a design-time factory. Migrations are not created
   during generation.

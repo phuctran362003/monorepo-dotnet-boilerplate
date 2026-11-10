@@ -45,6 +45,7 @@ public sealed record GeneratorOptions
     public bool HasPackage(OptionalPackage package) => (Packages & package) == package;
 
     public string ApiProject => $"{SolutionName}.API";
+    public string ServiceProject => $"{SolutionName}.Service";
     public string ConsoleProject => $"{SolutionName}.Console";
     public string WebApiProject => $"{SolutionName}.WebApi";
     public string ApplicationProject => $"{SolutionName}.Application";
@@ -56,6 +57,7 @@ public sealed record GeneratorOptions
     /// <summary>Project that hosts the application entry point for the selected architecture.</summary>
     public string MainProject => Architecture switch
     {
+        ArchitectureType.Standard => ApiProject,
         ArchitectureType.Ddd => ProjectKind == ProjectKind.Console ? ConsoleProject : ApiProject,
         ArchitectureType.Clean => ProjectKind == ProjectKind.Console ? ConsoleProject : WebApiProject,
         ArchitectureType.SingleLayer => SingleLayerProject,

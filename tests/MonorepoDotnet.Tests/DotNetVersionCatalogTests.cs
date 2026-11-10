@@ -6,8 +6,6 @@ namespace MonorepoDotnet.Tests;
 public sealed class DotNetVersionCatalogTests
 {
     [Theory]
-    [InlineData("net8.0", 8, "8.0", "8.0.33")]
-    [InlineData("net9.0", 9, "9.0", "9.0.22")]
     [InlineData("net10.0", 10, "10.0", "10.0.14")]
     public void Get_returns_matching_profile(
         string targetFramework,
@@ -29,7 +27,10 @@ public sealed class DotNetVersionCatalogTests
     public void Unsupported_framework_is_rejected()
     {
         Assert.False(DotNetVersionCatalog.IsSupported("net7.0"));
-        Assert.Throws<ArgumentException>(() => DotNetVersionCatalog.Get("net7.0"));
+        Assert.False(DotNetVersionCatalog.IsSupported("net8.0"));
+        Assert.False(DotNetVersionCatalog.IsSupported("net9.0"));
+        Assert.Throws<ArgumentException>(() => DotNetVersionCatalog.Get("net8.0"));
+        Assert.Throws<ArgumentException>(() => DotNetVersionCatalog.Get("net9.0"));
     }
 
     [Fact]

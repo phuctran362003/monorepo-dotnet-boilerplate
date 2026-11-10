@@ -1,4 +1,3 @@
-using MonorepoDotnet.Core.Generation;
 using MonorepoDotnet.Core.Models;
 using MonorepoDotnet.Core.Validation;
 using Spectre.Console;
@@ -38,11 +37,6 @@ public sealed class ConfigurationPrompt
                         : ValidationResult.Error(string.Join(" ", errors));
                 }));
 
-        var dotNetVersion = AnsiConsole.Prompt(
-            new SelectionPrompt<string>()
-                .Title("Target [green].NET version[/]:")
-                .AddChoices(DotNetVersionCatalog.All.Select(profile => profile.ChoiceLabel)));
-
         var projectKind = AnsiConsole.Prompt(
             new SelectionPrompt<ProjectKind>()
                 .Title("[green]Application[/]:")
@@ -65,20 +59,22 @@ public sealed class ConfigurationPrompt
             "Generate [green]Docker[/] files (Dockerfile, docker-compose.yml, .env.example)?",
             defaultValue: true);
 
-        var packages = AnsiConsole.Prompt(
-            new MultiSelectionPrompt<OptionalPackage>()
-                .Title("Optional [green]packages[/] (space to select, enter to confirm):")
-                .NotRequired()
-                .PageSize(10)
-                .InstructionsText("[grey](press [blue]<space>[/] to toggle, [green]<enter>[/] to accept)[/]")
-                .AddChoices(OptionalPackageExtensions.All())
-                .UseConverter(package => package.ToDisplayName()));
+        var packages = architecture == ArchitectureType.Standard
+            ? []
+            : AnsiConsole.Prompt(
+                new MultiSelectionPrompt<OptionalPackage>()
+                    .Title("Optional [green]packages[/] (space to select, enter to confirm):")
+                    .NotRequired()
+                    .PageSize(10)
+                    .InstructionsText("[grey](press [blue]<space>[/] to toggle, [green]<enter>[/] to accept)[/]")
+                    .AddChoices(OptionalPackageExtensions.All())
+                    .UseConverter(package => package.ToDisplayName()));
 
         return new GeneratorOptions
         {
             SolutionName = normalizedName,
             OutputDirectory = OutputPathValidator.Normalize(outputDirectory),
-            DotNetVersion = dotNetVersion.Split(' ')[0],
+            DotNetVersion = GeneratorOptions.DefaultDotNetVersion,
             ProjectKind = projectKind,
             Architecture = architecture,
             Database = database,

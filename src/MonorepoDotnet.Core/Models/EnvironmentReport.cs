@@ -37,6 +37,6 @@ public sealed record EnvironmentValidationRequest
 
     public string? SolutionName { get; init; }
 
-    /// <summary>Target framework the generated solution will use, e.g. net8.0.</summary>
+    /// <summary>Target framework the generated solution will use, e.g. net10.0.</summary>
     public string? DotNetVersion { get; init; }
 }

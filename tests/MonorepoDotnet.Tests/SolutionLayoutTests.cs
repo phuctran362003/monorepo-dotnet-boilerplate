@@ -6,6 +6,28 @@ namespace MonorepoDotnet.Tests;
 public class SolutionLayoutTests
 {
     [Fact]
+    public void Create_StandardArchitecture_UsesTheBackendStructureProjects()
+    {
+        var options = new GeneratorOptions
+        {
+            SolutionName = "TestApp",
+            OutputDirectory = Path.GetTempPath(),
+            Architecture = ArchitectureType.Standard,
+            Database = DatabaseProvider.PostgreSql
+        };
+
+        var layout = SolutionLayouts.Create(options);
+
+        Assert.Equal("TestApp.API", layout.MainProject.Name);
+        Assert.Equal("TestApp.Domain", layout.MigrationProject!.Name);
+        Assert.Equal("TestApp.API", layout.MigrationStartupProject!.Name);
+        Assert.Equal("Migrations", layout.MigrationOutputDirectory);
+        Assert.Equal(
+            ["TestApp.Domain", "TestApp.Infrastructure", "TestApp.Service", "TestApp.API"],
+            layout.Projects.Select(project => project.Name).ToArray());
+    }
+
+    [Fact]
     public void Create_DddArchitecture_ReturnsCorrectProjects()
     {
         var options = new GeneratorOptions

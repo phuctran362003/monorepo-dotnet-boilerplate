@@ -46,8 +46,8 @@ continues and prints nothing. It does not update itself.
 
 1. **Banner** — tool name and purpose, then an update notice when nuget.org has a newer stable package.
 2. **Solution configuration** prompts (see below).
-3. **Environment checks** — a table reports .NET SDK (must be able to build the
-   selected target framework), Docker CLI, Docker Engine, output directory
+3. **Environment checks** — a table reports the .NET 10 SDK (required to build
+   the generated solution), Docker CLI, Docker Engine, output directory
    permissions, the complete solution path and solution name validation. Errors
    abort the run; warnings are informational. If the SDK is missing, the CLI
    prints the Microsoft install commands (WinGet / official `dotnet-install`
@@ -71,12 +71,14 @@ generated directory is removed when the generator created it.
 | --- | --- | --- |
 | Solution name | none | Required. Must match `^[A-Za-z][A-Za-z0-9_]*$`, at most 64 characters. |
 | Output directory | current directory | Absolute or relative; validated and normalized with `Path.GetFullPath`. |
-| .NET version | `net10.0` | `net10.0`, `net9.0` or `net8.0`. |
 | Application | Web API | Web API, MVC or Console. |
 | Architecture | DDD | Web API and Console: DDD, Clean Architecture, 1-Layer. MVC: 1-Layer Razor. |
 | Database | PostgreSQL | PostgreSQL or SQL Server, both EF Core Code First. |
 | Docker files | Yes | Generates `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.env.example` and `.env`. |
 | Optional packages | none | Multi-select: Serilog, FluentValidation, AutoMapper, Redis, MediatR. |
+
+Generated solutions always target `net10.0`. The CLI does not ask for a .NET
+version.
 
 Unit and integration test generation is **not offered**, because the MVP does
 not generate test projects. The CLI only shows options that are implemented.
@@ -87,6 +89,7 @@ The application prompt runs first. The architecture prompt then lists only the l
 
 | Application | Architecture | Layout |
 | --- | --- | --- |
+| Web API | Standard | `API` → `Service` → `Infrastructure` → `Domain`, from [backend-structure.md](backend-structure.md). Default. Solution file is `.slnx`. |
 | Web API | DDD | `Domain`, `Application`, `Infrastructure`, `API` with aggregate roots, value objects and domain events. |
 | Web API | Clean Architecture | `Domain`, `Application`, `Infrastructure`, `WebApi`; a simpler entity model with the same inward dependency rule. |
 | Web API | 1-Layer | Single `{SolutionName}` web project with `Controllers`, `Models`, `Data`, `Products` and `Services`. |
@@ -95,8 +98,10 @@ The application prompt runs first. The architecture prompt then lists only the l
 | Console | Clean Architecture | Same projects as DDD, with the Clean domain model. The host project is `{SolutionName}.Console`. |
 | Console | 1-Layer | Single `{SolutionName}` console project with `Products`, `Models` and `Data`. |
 
-Web API, Console and MVC support PostgreSQL, SQL Server, Docker and the optional
-packages. The sample `Product` slice is generated in every layout. A console
+Web API, Console and MVC support PostgreSQL, SQL Server and Docker. DDD, Clean,
+1-layer and MVC also offer the optional packages. Standard does not: its files
+and package versions come from [backend-structure.md](backend-structure.md).
+The sample `Product` slice is generated in every layout. A console
 run creates one sample product and prints the list.
 
 ### Databases
@@ -170,7 +175,7 @@ first migration.
 
 | Requirement | When it is checked | Severity |
 | --- | --- | --- |
-| .NET SDK matching the selected TFM (8, 9 or 10) | Always | Error (with Microsoft install commands) |
+| .NET 10 SDK | Always | Error (with Microsoft install commands) |
 | Docker CLI | Only when Docker files are requested | Error |
 | Docker Engine reachable | Only when Docker files are requested | Warning |
 | Output directory writable | Always | Error |
@@ -202,16 +207,13 @@ containers needs it.
 - **Docker Engine warning** — start Docker Desktop (or the daemon). Docker file
   generation still succeeds.
 - **.NET SDK missing or too old** — run the printed Microsoft command
-  (`winget install Microsoft.DotNet.SDK.8` / `.9` / `.10`, or the official
+  (`winget install Microsoft.DotNet.SDK.10`, or the official
   script from https://dot.net/v1/dotnet-install.ps1), or accept the CLI prompt
-  to install it. Download pages:
-  https://dotnet.microsoft.com/download/dotnet/8.0,
-  https://dotnet.microsoft.com/download/dotnet/9.0,
+  to install it. Download page:
   https://dotnet.microsoft.com/download/dotnet/10.0.
 - **Migration warning** — install the tool with
   `dotnet tool install --global dotnet-ef --version <EfCoreVersion>`, then run the
-  command printed in the generated `README.md`. The version matches the selected
-  target framework.
+  command printed in the generated `README.md`. The version matches .NET 10.
 - **Build failure** — the full `dotnet build` output is included in the failure
   panel. The partially generated directory is removed so the next attempt starts
   clean.

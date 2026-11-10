@@ -6,15 +6,15 @@ This file is the source of truth for product goals, architecture, phases, coding
 
 ## Current status
 
-**Completed:** Phases 1–8, plus .NET 8/9 generation and Microsoft SDK install.
+**Completed:** Phases 1–8. Generated solutions target .NET 10 only. Microsoft SDK install covers the .NET 10 SDK.
 
 - On startup and on `--version`, the CLI checks nuget.org and, when a newer stable `monorepo-dotnet` package exists, prints `dotnet tool update --global monorepo-dotnet`. The check times out after 3 seconds and stays quiet offline.
-- The CLI asks for the application (Web API, MVC or Console) before architecture. Web API and Console then offer DDD, Clean Architecture and 1-layer. A console host is `{SolutionName}.Console` for DDD and Clean, and the single project for 1-layer. MVC offers the 1-layer Razor layout.
+- The CLI asks for the application (Web API, MVC or Console) before architecture. Web API defaults to the standard backend in `docs/backend-structure.md` (`API` → `Service` → `Infrastructure` → `Domain`, solution file `.slnx`) and also offers DDD, Clean Architecture and 1-layer. A console host is `{SolutionName}.Console` for DDD and Clean, and the single project for 1-layer. MVC offers the 1-layer Razor layout.
 - Generated API/WebApi and 1-layer solutions expose Swagger UI at `/swagger` in Development (OpenAPI document at `/openapi/v1.json`).
-- Generated solutions can target `net8.0`, `net9.0` or `net10.0` (default 10).
-- Missing or incompatible SDKs surface official Microsoft install commands
-  (WinGet `Microsoft.DotNet.SDK.{8|9|10}`, `dotnet-install` from https://dot.net,
-  download pages) and the CLI can run the install, then re-validate.
+- Generated solutions target `net10.0`. The CLI does not ask for a .NET version.
+- A missing or incompatible .NET 10 SDK surfaces official Microsoft install commands
+  (WinGet `Microsoft.DotNet.SDK.10`, `dotnet-install` from https://dot.net,
+  the .NET 10 download page) and the CLI can run the install, then re-validate.
 
 - Phase 1 — Foundation: three-project solution, DI, `ProcessRunner`, file system, template provider/renderer, environment and name validation.
 - Phase 2 — DDD generator: 53 embedded templates, `DddTemplateManifest`, `DddSolutionGenerator`, solution/project creation, restore, build.
@@ -42,7 +42,7 @@ In DDD and Clean Architecture every `PackageReference` is on the Domain project.
 - Template-based code generation.
 
 **Generated projects:**
-- ASP.NET Core 8, 9 or 10 Web API (or MVC).
+- ASP.NET Core 10 Web API (or MVC). The standard Web API layout is `API` → `Service` → `Infrastructure` → `Domain`, described in `docs/backend-structure.md`.
 - Domain-Driven Design (DDD), Clean Architecture, 1-layer or MVC layout.
 - Entity Framework Core.
 - PostgreSQL (Npgsql) or SQL Server (Microsoft.EntityFrameworkCore.SqlServer).
@@ -95,17 +95,18 @@ Rules:
 
 Use Spectre.Console to create a professional interactive terminal experience.
 
+Generated solutions always target `net10.0`. The CLI does not ask for a .NET version.
+
 The CLI MUST ask the user for the following configuration:
 
 1. Solution name (required, no hardcoded default).
 2. Output directory.
-3. .NET version (default .NET 10).
-4. Application (Web API, MVC or Console).
-5. Architecture. Web API and Console offer DDD, Clean Architecture and 1-layer. MVC offers the 1-layer Razor layout.
-6. Database (PostgreSQL or SQL Server for MVP).
-7. Docker (default Yes).
-8. Generate Unit Tests and Integration Tests (default No).
-9. Optional packages:
+3. Application (Web API, MVC or Console).
+4. Architecture. Web API and Console offer DDD, Clean Architecture and 1-layer. MVC offers the 1-layer Razor layout.
+5. Database (PostgreSQL or SQL Server for MVP).
+6. Docker (default Yes).
+7. Generate Unit Tests and Integration Tests (default No).
+8. Optional packages:
    - Serilog
    - FluentValidation
    - AutoMapper

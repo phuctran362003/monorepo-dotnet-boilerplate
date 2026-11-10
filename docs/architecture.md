@@ -191,7 +191,7 @@ reference for the solution, including EF Core, the selected database provider,
 configuration, JWT Bearer, FluentValidation.AspNetCore, optional packages, and
 the host packages. Application, Infrastructure and the host project reference
 other projects only.
-Versions come from `DotNetVersionCatalog` for the selected target framework.
+Versions come from `DotNetVersionCatalog` for `net10.0`.
 
 Domain contains entities, value objects, enums, domain events, domain
 exceptions and repository interfaces. Application contains use cases, DTOs,
@@ -221,7 +221,8 @@ codes: `0` success, `1` failure/cancel, `130` Ctrl+C.
   captures stdout/stderr for error reporting.
 - Generated secrets never live in source: `.env` is generated, git-ignored, and
   referenced from Compose; `appsettings.json` keeps the password empty.
-- Generated solutions target `net10.0`, `net9.0` or `net8.0` (package and Docker
+- The default Web API layout is Standard: `API` → `Service` → `Infrastructure` → `Domain`, matching [backend-structure.md](backend-structure.md). The solution file is `.slnx`. DDD, Clean, 1-layer and MVC remain available.
+- Generated solutions target `net10.0` (package and Docker
   image versions come from `DotNetVersionCatalog`); PostgreSQL and SQL Server
   are supported and all four architectures are implemented. Other databases and
   frameworks are rejected by `ValidateOptions`.

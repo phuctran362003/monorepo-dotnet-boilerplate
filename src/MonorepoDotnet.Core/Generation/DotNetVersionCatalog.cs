@@ -1,8 +1,8 @@
 namespace MonorepoDotnet.Core.Generation;
 
 /// <summary>
-/// Supported target frameworks for generated solutions, including the NuGet
-/// versions and Microsoft install metadata that go with each one.
+/// Target framework for generated solutions, including the NuGet versions and
+/// Microsoft install metadata that go with it.
 /// </summary>
 public sealed record DotNetVersionProfile(
     string TargetFramework,
@@ -18,22 +18,16 @@ public sealed record DotNetVersionProfile(
     string SerilogAspNetCore,
     string JwtBearer,
     string AspNetCoreOData,
-    string FluentValidationAspNetCore,
-    string? AbstractionsOverride = null)
+    string FluentValidationAspNetCore)
 {
     /// <summary>
     /// Version for Microsoft.Extensions.DependencyInjection/Logging.Abstractions.
-    /// Defaults to <see cref="MicrosoftExtensions"/> unless a framework needs a
-    /// newer abstractions package to satisfy transitive EF Core dependencies
-    /// (otherwise NuGet reports NU1605 package downgrade errors).
     /// </summary>
-    public string ExtensionsAbstractions => AbstractionsOverride ?? MicrosoftExtensions;
+    public string ExtensionsAbstractions => MicrosoftExtensions;
 
     public string WingetPackageId => $"Microsoft.DotNet.SDK.{Major}";
 
     public string DownloadUrl => $"https://dotnet.microsoft.com/download/dotnet/{Channel}";
-
-    public string ChoiceLabel => $"{TargetFramework} ({DisplayName})";
 }
 
 public static class DotNetVersionCatalog
@@ -54,42 +48,8 @@ public static class DotNetVersionCatalog
         AspNetCoreOData: "9.5.0",
         FluentValidationAspNetCore: "11.3.1");
 
-    public static readonly DotNetVersionProfile Net9 = new(
-        TargetFramework: "net9.0",
-        DisplayName: ".NET 9",
-        Major: 9,
-        Channel: "9.0",
-        ImageTag: "9.0",
-        EntityFrameworkCore: "9.0.22",
-        NpgsqlEntityFrameworkCore: "9.0.4",
-        AspNetCoreOpenApi: "9.0.22",
-        MicrosoftExtensions: "9.0.22",
-        CachingRedis: "9.0.22",
-        SerilogAspNetCore: "9.0.0",
-        JwtBearer: "9.0.22",
-        AspNetCoreOData: "9.5.0",
-        FluentValidationAspNetCore: "11.3.1");
-
-    public static readonly DotNetVersionProfile Net8 = new(
-        TargetFramework: "net8.0",
-        DisplayName: ".NET 8",
-        Major: 8,
-        Channel: "8.0",
-        ImageTag: "8.0",
-        EntityFrameworkCore: "8.0.33",
-        NpgsqlEntityFrameworkCore: "8.0.11",
-        AspNetCoreOpenApi: "8.0.33",
-        MicrosoftExtensions: "8.0.0",
-        CachingRedis: "8.0.22",
-        SerilogAspNetCore: "8.0.3",
-        JwtBearer: "8.0.33",
-        AspNetCoreOData: "9.5.0",
-        FluentValidationAspNetCore: "11.3.1",
-        // EF Core 8.0.33 -> Caching.Memory 8.0.1 needs DI/Logging abstractions >= 8.0.2.
-        AbstractionsOverride: "8.0.2");
-
-    /// <summary>Prompt order: newest first so .NET 10 remains the default.</summary>
-    public static IReadOnlyList<DotNetVersionProfile> All { get; } = [Net10, Net9, Net8];
+    /// <summary>Generated solutions target .NET 10 only.</summary>
+    public static IReadOnlyList<DotNetVersionProfile> All { get; } = [Net10];
 
     public static bool IsSupported(string targetFramework) =>
         All.Any(profile => profile.TargetFramework.Equals(targetFramework, StringComparison.Ordinal));

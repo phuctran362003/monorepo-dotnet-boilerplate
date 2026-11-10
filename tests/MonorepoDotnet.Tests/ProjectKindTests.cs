@@ -5,11 +5,13 @@ namespace MonorepoDotnet.Tests;
 public class ProjectKindTests
 {
     [Fact]
-    public void For_WebApi_OffersDddCleanAndSingleLayer()
+    public void For_WebApi_OffersStandardThenTheOtherLayouts()
     {
         var architectures = ArchitectureTypeExtensions.For(ProjectKind.WebApi).ToArray();
 
-        Assert.Equal([ArchitectureType.Ddd, ArchitectureType.Clean, ArchitectureType.SingleLayer], architectures);
+        Assert.Equal(
+            [ArchitectureType.Standard, ArchitectureType.Ddd, ArchitectureType.Clean, ArchitectureType.SingleLayer],
+            architectures);
         Assert.All(architectures, architecture => Assert.True(ProjectKind.WebApi.IsImplemented(architecture)));
     }
 

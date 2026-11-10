@@ -14,7 +14,8 @@ public enum ArchitectureType
     Ddd = 0,
     Clean = 1,
     SingleLayer = 2,
-    Mvc = 3
+    Mvc = 3,
+    Standard = 4
 }
 
 /// <summary>Supported database providers.</summary>
@@ -57,7 +58,7 @@ public static class ProjectKindExtensions
     public static bool IsImplemented(this ProjectKind projectKind, ArchitectureType architecture) =>
         projectKind switch
         {
-            ProjectKind.WebApi => architecture is ArchitectureType.Ddd or ArchitectureType.Clean or ArchitectureType.SingleLayer,
+            ProjectKind.WebApi => architecture is ArchitectureType.Standard or ArchitectureType.Ddd or ArchitectureType.Clean or ArchitectureType.SingleLayer,
             ProjectKind.Mvc => architecture is ArchitectureType.Mvc,
             ProjectKind.Console => architecture is ArchitectureType.Ddd or ArchitectureType.Clean or ArchitectureType.SingleLayer,
             _ => false
@@ -69,6 +70,7 @@ public static class ArchitectureTypeExtensions
     public static string ToDisplayName(this ArchitectureType architecture, ProjectKind projectKind) =>
         (projectKind, architecture) switch
         {
+            (ProjectKind.WebApi, ArchitectureType.Standard) => "Standard (API, Service, Infrastructure, Domain)",
             (ProjectKind.WebApi, ArchitectureType.Ddd) => "DDD (Domain-Driven Design)",
             (ProjectKind.WebApi, ArchitectureType.Clean) => "Clean Architecture (Domain, Application, Infrastructure, WebApi)",
             (ProjectKind.WebApi, ArchitectureType.SingleLayer) => "1-Layer (single ASP.NET Core Web API project)",
@@ -84,6 +86,7 @@ public static class ArchitectureTypeExtensions
         switch (projectKind)
         {
             case ProjectKind.WebApi:
+                yield return ArchitectureType.Standard;
                 yield return ArchitectureType.Ddd;
                 yield return ArchitectureType.Clean;
                 yield return ArchitectureType.SingleLayer;

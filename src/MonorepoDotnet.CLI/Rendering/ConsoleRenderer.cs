@@ -141,9 +141,10 @@ public static class ConsoleRenderer
         AnsiConsole.MarkupLine("[grey]Usage:[/] monorepo [bold][[--help]][/]");
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine("The CLI is interactive: it asks for the solution name, output directory,");
-        AnsiConsole.MarkupLine("target framework, application (Web API, MVC or Console), architecture, database, Docker and optional packages.");
+        AnsiConsole.MarkupLine("application (Web API, MVC or Console), architecture, database, Docker and optional packages.");
+        AnsiConsole.MarkupLine("Generated solutions target [bold]net10.0[/].");
         AnsiConsole.WriteLine();
-        AnsiConsole.MarkupLine("[grey]Requirements:[/] .NET SDK 8, 9 or 10 (matching the target you pick), Docker (optional), dotnet-ef (optional).");
+        AnsiConsole.MarkupLine("[grey]Requirements:[/] .NET 10 SDK, Docker (optional), dotnet-ef (optional).");
         AnsiConsole.MarkupLine("[grey]Missing SDK:[/] the CLI prints Microsoft install commands and can run them for you.");
     }
 

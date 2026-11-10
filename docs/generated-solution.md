@@ -53,7 +53,7 @@ Domain ──► (no project references)
 
 ## Domain
 
-No project references. Every `PackageReference` for the solution lives in this project file: EF Core, the database provider, configuration, JWT Bearer, FluentValidation.AspNetCore, and the host packages (OpenAPI, Swagger UI and OData for a web host, `Microsoft.Extensions.Hosting` for a console host). Optional packages are added here too. Package versions follow the chosen target framework.
+No project references. Every `PackageReference` for the solution lives in this project file: EF Core, the database provider, configuration, JWT Bearer, FluentValidation.AspNetCore, and the host packages (OpenAPI, Swagger UI and OData for a web host, `Microsoft.Extensions.Hosting` for a console host). Optional packages are added here too. Package versions follow .NET 10.
 
 | Folder | Contents |
 | --- | --- |
@@ -133,7 +133,7 @@ OpenAPI is mapped in Development at `/openapi/v1.json`. Swagger UI is served at 
 
 Pinned versions live in
 [`DotNetVersionCatalog.cs`](../src/MonorepoDotnet.Core/Generation/DotNetVersionCatalog.cs)
-(per target framework) and
+(for `net10.0`) and
 [`PackageVersions.cs`](../src/MonorepoDotnet.Core/Generation/PackageVersions.cs)
 (shared packages) and are substituted into every template, so all generated
 projects agree.
@@ -181,8 +181,8 @@ set `APPLY_MIGRATIONS=true` to opt in to `Database.MigrateAsync()` at startup.
 
 ## Docker
 
-`Dockerfile` is multi-stage: `sdk:{8|9|10}.0` restore/publish matching the
-selected target framework, then `aspnet:{8|9|10}.0` runtime as a non-root user
+`Dockerfile` is multi-stage: `sdk:10.0` restore/publish, then `aspnet:10.0`
+runtime as a non-root user
 (`USER $APP_UID`) listening on port 8080.
 
 `docker-compose.yml` defines:
