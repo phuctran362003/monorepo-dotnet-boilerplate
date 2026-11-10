@@ -1,0 +1,99 @@
+# Build + test gate for every push and pull request.
+# Runs the full suite (including the generation tests that generate and build
+# real solutions), then packs the global tool and guards its metadata encoding.
+
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: |
+            **/*.csproj
+            global.json
+
+      - name: Restore
+        run: dotnet restore MonorepoDotnet.sln
+
+      - name: Build
+        run: dotnet build MonorepoDotnet.sln -c Release --no-restore
+
+      - name: Test
+        run: >
+          dotnet test MonorepoDotnet.sln -c Release --no-build
+          --logger "trx;LogFileName=test-results.trx"
+          --collect:"XPlat Code Coverage"
+          --results-directory artifacts/test-results
+
+      - name: Pack global tool
+        run: dotnet pack src/MonorepoDotnet.CLI -c Release --no-build -o artifacts/packages
+
+      - name: Guard package metadata against mojibake
+        run: |
+          python3 - <<'PY'
+          import glob
+          import sys
+          import zipfile
+
+          packages = sorted(glob.glob("artifacts/packages/*.nupkg"))
+          if not packages:
+              sys.exit("No .nupkg produced by pack.")
+
+          package = packages[-1]
+          with zipfile.ZipFile(package) as archive:
+              nuspec = next(n for n in archive.namelist() if n.endswith(".nuspec"))
+              text = archive.read(nuspec).decode("utf-8")
+
+          replacements = [i for i, char in enumerate(text) if char == "\ufffd"]
+          # Mojibake signature: Â/Ã/â followed by a continuation-range character.
+          mojibake = [
+              i
+              for i in range(len(text) - 1)
+              if text[i] in "\u00c2\u00c3\u00e2" and "\u0080" <= text[i + 1] <= "\u00bf"
+          ]
+
+          print(f"{package}: {nuspec}, {len(text)} chars")
+          if replacements or mojibake:
+              print(f"FAIL: {len(replacements)} replacement chars, {len(mojibake)} mojibake pairs")
+              print("Sample:", repr(text[:200]))
+              sys.exit(1)
+          print("OK: metadata is clean UTF-8")
+          PY
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: artifacts/test-results
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: nupkg
+          path: artifacts/packages/*.nupkg
+          retention-days: 7
