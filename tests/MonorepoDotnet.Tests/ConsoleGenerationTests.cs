@@ -8,18 +8,14 @@ namespace MonorepoDotnet.Tests;
 
 public class ConsoleGenerationTests
 {
-    [Theory]
-    [InlineData(ArchitectureType.Ddd, "ConsoleDdd")]
-    [InlineData(ArchitectureType.Clean, "ConsoleClean")]
-    [InlineData(ArchitectureType.SingleLayer, "ConsoleLayer")]
-    public async Task Generate_ConsoleArchitecture_Builds(ArchitectureType architecture, string solutionName)
+    private static async Task<(GenerationResult Result, string Root)> GenerateConsoleAsync(
+        ArchitectureType architecture,
+        string solutionName,
+        ProjectKind projectKind = ProjectKind.Console,
+        bool includeDocker = true)
     {
-        var output = Path.Combine(Path.GetTempPath(), "monorepo-console-check");
+        var output = Path.Combine(Path.GetTempPath(), $"monorepo-console-{Guid.NewGuid():N}");
         var root = Path.Combine(output, solutionName);
-        if (Directory.Exists(root))
-        {
-            Directory.Delete(root, recursive: true);
-        }
 
         var generator = new SolutionGenerator(
             new FileSystemService(),
@@ -31,12 +27,23 @@ public class ConsoleGenerationTests
         {
             SolutionName = solutionName,
             OutputDirectory = output,
-            ProjectKind = ProjectKind.Console,
+            ProjectKind = projectKind,
             Architecture = architecture,
             Database = DatabaseProvider.PostgreSql,
-            IncludeDocker = true,
+            IncludeDocker = includeDocker,
             BuildAfterGeneration = true
         });
+
+        return (result, root);
+    }
+
+    [Theory]
+    [InlineData(ArchitectureType.Ddd, "ConsoleDdd")]
+    [InlineData(ArchitectureType.Clean, "ConsoleClean")]
+    [InlineData(ArchitectureType.SingleLayer, "ConsoleLayer")]
+    public async Task Generate_ConsoleArchitecture_Builds(ArchitectureType architecture, string solutionName)
+    {
+        var (result, root) = await GenerateConsoleAsync(architecture, solutionName);
 
         Assert.True(result.Success, result.Error);
         Assert.True(File.Exists(Path.Combine(root, "Dockerfile")));
@@ -53,29 +60,8 @@ public class ConsoleGenerationTests
     [Fact]
     public async Task Generate_DddWebApi_BuildsWithPackagesOnDomain()
     {
-        var output = Path.Combine(Path.GetTempPath(), "monorepo-console-check");
-        var root = Path.Combine(output, "WebDdd");
-        if (Directory.Exists(root))
-        {
-            Directory.Delete(root, recursive: true);
-        }
-
-        var generator = new SolutionGenerator(
-            new FileSystemService(),
-            new TemplateProvider(),
-            new TemplateRenderer(),
-            new ProcessRunner());
-
-        var result = await generator.GenerateAsync(new GeneratorOptions
-        {
-            SolutionName = "WebDdd",
-            OutputDirectory = output,
-            ProjectKind = ProjectKind.WebApi,
-            Architecture = ArchitectureType.Ddd,
-            Database = DatabaseProvider.PostgreSql,
-            IncludeDocker = false,
-            BuildAfterGeneration = true
-        });
+        var (result, root) = await GenerateConsoleAsync(
+            ArchitectureType.Ddd, "WebDdd", projectKind: ProjectKind.WebApi, includeDocker: false);
 
         Assert.True(result.Success, result.Error);
         Assert.DoesNotContain(result.Warnings, warning => warning.Contains("could not be created", StringComparison.OrdinalIgnoreCase));
@@ -91,12 +77,8 @@ public class ConsoleGenerationTests
     [InlineData(ProjectKind.Mvc, ArchitectureType.Mvc, "WebMvc")]
     public async Task Generate_OtherHosts_Build(ProjectKind projectKind, ArchitectureType architecture, string solutionName)
     {
-        var output = Path.Combine(Path.GetTempPath(), "monorepo-console-check");
+        var output = Path.Combine(Path.GetTempPath(), $"monorepo-other-{Guid.NewGuid():N}");
         var root = Path.Combine(output, solutionName);
-        if (Directory.Exists(root))
-        {
-            Directory.Delete(root, recursive: true);
-        }
 
         var generator = new SolutionGenerator(
             new FileSystemService(),

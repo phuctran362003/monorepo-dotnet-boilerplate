@@ -3,20 +3,14 @@ using MonorepoDotnet.Core.Models;
 using MonorepoDotnet.Infrastructure.FileSystem;
 using MonorepoDotnet.Infrastructure.Processes;
 using MonorepoDotnet.Infrastructure.Templates;
-
 namespace MonorepoDotnet.Tests;
 
 public class StandardGenerationTests
 {
-    [Fact]
-    public async Task Generate_StandardBackend_BuildsTheDocumentedLayout()
+    private static async Task<(GenerationResult Result, string Root)> GenerateStandardAsync(string solutionName)
     {
-        var output = Path.Combine(Path.GetTempPath(), "monorepo-standard-check");
-        var root = Path.Combine(output, "Shop");
-        if (Directory.Exists(root))
-        {
-            Directory.Delete(root, recursive: true);
-        }
+        var output = Path.Combine(Path.GetTempPath(), $"monorepo-standard-{Guid.NewGuid():N}");
+        var root = Path.Combine(output, solutionName);
 
         var generator = new SolutionGenerator(
             new FileSystemService(),
@@ -26,7 +20,7 @@ public class StandardGenerationTests
 
         var result = await generator.GenerateAsync(new GeneratorOptions
         {
-            SolutionName = "Shop",
+            SolutionName = solutionName,
             OutputDirectory = output,
             ProjectKind = ProjectKind.WebApi,
             Architecture = ArchitectureType.Standard,
@@ -34,6 +28,14 @@ public class StandardGenerationTests
             IncludeDocker = true,
             BuildAfterGeneration = true
         });
+
+        return (result, root);
+    }
+
+    [Fact]
+    public async Task Generate_StandardBackend_BuildsTheDocumentedLayout()
+    {
+        var (result, root) = await GenerateStandardAsync("Shop");
 
         Assert.True(result.Success, result.Error);
         Assert.True(File.Exists(Path.Combine(root, "Shop.slnx")));

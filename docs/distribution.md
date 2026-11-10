@@ -155,88 +155,54 @@ After the policy is saved and this workflow is on the default branch:
 Local `dotnet nuget push` still needs a classic API key (below). Trusted
 Publishing only applies to that GitHub Actions job.
 
-### One-click from the repo root
+### Publish to nuget.org (Trusted Publishing only)
 
-Double-click `publish-nuget.bat` (or run it from a terminal). The bat launches
-`scripts/publish-nuget.ps1`. It reads
-`<Version>` in `src/MonorepoDotnet.CLI/MonorepoDotnet.CLI.csproj`, bumps the
-**patch** (`0.1.0` → `0.1.1`), writes it back, packs once, then pushes the
-nupkg to nuget.org. It does not install or update the tool on this machine.
+This repo publishes exclusively through `.github/workflows/publish.yml`, which
+uses **nuget.org Trusted Publishing (OIDC)**. There is no long-lived API key and
+no local publish script in the repository.
 
-```bat
-publish-nuget.bat
-publish-nuget.bat minor
-publish-nuget.bat major
-```
+1. Bump `<Version>` in `src/MonorepoDotnet.CLI/MonorepoDotnet.CLI.csproj` and
+   push to `main` (or tag a release). CI verifies the version is not already
+   published.
+2. Trigger `.github/workflows/publish.yml` (Actions → publish → Run workflow,
+   or publish a GitHub Release). The job uses `environment: production` and the
+   OIDC identity, so no secret lives in the repo.
 
-The API key is **not** in the repo. The script reads the Windows user
-environment variable `NUGET_API_KEY`. If it is missing, it asks you to paste
-the key once and stores it with
-`[Environment]::SetEnvironmentVariable(..., 'User')` so later runs do not
-prompt. It does not open nuget.org. The version is only bumped after a key is
-available.
+The nuget.org policy must match `publish.yml` (owner `devphuctrann`, repository
+`phuctran362003/monorepo-dotnet-boilerplate`, workflow file `publish.yml`,
+environment `production`). Create the environment in
+**Settings → Environments → `production`** on GitHub.
 
-### Publish from your machine (classic API key)
+You cannot replace a version that already exists on nuget.org — always bump
+`<Version>` before pushing. Since `publish.yml` no longer passes
+`--skip-duplicate`, a duplicate version fails the push loudly instead of
+silently succeeding.
 
-**1. Create an account and API key**
-
-1. Sign in at [https://www.nuget.org](https://www.nuget.org) (Microsoft account).
-2. [Account settings → API Keys](https://www.nuget.org/account/apikeys) → Create.
-3. Scope: **Push** (and unlist if you want). Package glob: `monorepo-dotnet`
-   or `*`.
-4. Copy the key once. Keep it out of the repo. In the current terminal:
-
-```powershell
-$env:NUGET_API_KEY = "....paste once...."
-```
-
-Never commit the key. Never put it in a `NuGet.Config` that is checked in.
-
-**2. Pack, inspect, push**
-
-Bump `<Version>` in `src/MonorepoDotnet.CLI/MonorepoDotnet.CLI.csproj` before
-every push; you cannot replace a version that already exists on nuget.org.
-
-```powershell
-dotnet pack src/MonorepoDotnet.CLI -c Release -o artifacts/packages
-dotnet nuget push artifacts/packages/monorepo-dotnet.0.1.0.nupkg `
-  --api-key $env:NUGET_API_KEY `
-  --source https://api.nuget.org/v3/index.json `
-  --skip-duplicate
-```
-
-Indexing on nuget.org often takes a few minutes. The package page:
-
-`https://www.nuget.org/packages/monorepo-dotnet`
-
-**3. Install from nuget.org** (any machine with the .NET 10 SDK):
+Users install from nuget.org:
 
 ```powershell
 dotnet tool install --global monorepo-dotnet
 monorepo
-```
-
-Later versions. The running tool prints this command when nuget.org has a newer stable package:
-
-```powershell
 dotnet tool update --global monorepo-dotnet
 ```
 
-Uninstall:
+### Pack and install locally (dry run)
+
+Do this before the first NuGet.org push to verify the tool end-to-end:
 
 ```powershell
-dotnet tool uninstall --global monorepo-dotnet
+dotnet pack src/MonorepoDotnet.CLI -c Release -o artifacts/packages
+dotnet tool uninstall --global monorepo-dotnet   # ignore errors if not installed
+dotnet tool install --global --add-source artifacts/packages monorepo-dotnet
+monorepo --version
 ```
 
-**4. Next release**
+Update or remove a local install:
 
-1. Bump `<Version>` in the CLI csproj (and `--version` will follow).
-2. `dotnet pack` then `dotnet nuget push` the new nupkg.
-3. Users run `dotnet tool update --global monorepo-dotnet`.
-
-If a push fails with 409 Conflict, that version already exists — bump the
-version. If it fails with 403, the API key is missing push permission or the
-id is owned by another account.
+```powershell
+dotnet tool update --global --add-source artifacts/packages monorepo-dotnet
+dotnet tool uninstall --global monorepo-dotnet
+```
 
 ## Versioning
 

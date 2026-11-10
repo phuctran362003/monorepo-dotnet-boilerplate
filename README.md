@@ -6,8 +6,9 @@ packages already configured.
 
 Instead of creating projects, wiring references, installing packages, writing a
 `DbContext`, and configuring Docker by hand, answer a few prompts. The tool
-generates the solution, restores its packages, builds it, and creates the first
-EF Core migration.
+generates the solution, restores its packages and builds it.
+The migrations folder is left empty; run `dotnet ef migrations add` and
+`dotnet ef database update` manually when you are ready.
 
 ## Quick start
 

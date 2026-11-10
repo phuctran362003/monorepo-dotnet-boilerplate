@@ -97,3 +97,24 @@ jobs:
           name: nupkg
           path: artifacts/packages/*.nupkg
           retention-days: 7
+
+  version-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # Gate: không cho push/PR nếu <Version> trong csproj đã tồn tại trên nuget.org.
+    # Đẩy việc ngăn trùng bản publish lên sớm, trước khi workflow publish chạy.
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Fail if the csproj version already exists on nuget.org
+        run: |
+          version=$(grep -oP '(?<=<Version>)[^<]+' src/MonorepoDotnet.CLI/MonorepoDotnet.CLI.csproj | head -n1)
+          echo "csproj version: $version"
+          url="https://api.nuget.org/v3-flatcontainer/monorepo-dotnet/$version/monorepo-dotnet.$version.nupkg"
+          code=$(curl -s -o /dev/null -w '%{http_code}' "$url")
+          if [ "$code" = "200" ]; then
+            echo "::error::monorepo-dotnet $version is already published. Bump <Version>."
+            exit 1
+          fi
+          echo "OK: $version is not published yet (HTTP $code)."

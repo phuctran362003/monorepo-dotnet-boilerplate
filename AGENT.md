@@ -329,8 +329,8 @@ Implement incrementally:
 - Use dependency injection.
 - Keep code modular and maintainable.
 - Avoid unnecessary dependencies.
-- Do not create tests in this MVP.
 - Do not leave essential functionality as TODOs.
+- Keep tests synchronized with implementation.
 - Keep documentation synchronized with implementation.
 
 ## 10. Definition of Done
